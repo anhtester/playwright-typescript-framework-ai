@@ -74,14 +74,6 @@ wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("result")));
 await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible();
 ```
 
-**Cấm dùng `waitForLoadState('networkidle')` / `'load'` làm điều kiện "sẵn sàng":** chúng phụ thuộc sự kiện `load` của trình duyệt — Firefox đôi khi không bắn (trang có script bên thứ ba) dù trang đã vẽ xong → treo đến timeout, chỉ lỗi trên Firefox, ~25%, cùng một bước. Thay bằng tín hiệu của chính việc cần chờ:
-```typescript
-// Đăng ký TRƯỚC khi request phát sinh (vd ở framenavigated / trước khi click) — đăng ký sau là race
-const loaded = page.waitForResponse((res) => new URL(res.url()).pathname === '/admin/tasks/table');
-await loaded;                                  // hoặc expect(locator).toBeVisible() trên phần tử cuối cùng xuất hiện (locator phải verify trên DOM thật)
-```
-Chẩn đoán: mở `trace.zip`, đọc log bước fail — thiếu dòng `"load" event fired` là dấu hiệu chắc chắn. Ca thực tế: `memories/framework/loi-da-gap-va-cach-sua.md` #8.
-
 ---
 
 ### Test Data Conflicts
@@ -103,8 +95,7 @@ After fixing a flaky test, verify:
 - [ ] No hard sleep or fixed delays
 - [ ] Test data is unique and deterministic
 - [ ] Test is independent (no dependency on other tests)
-- [ ] Test passes 5+ consecutive runs — với lỗi theo trình duyệt hoặc tỉ lệ thấp: `--repeat-each=20 --retries=0` (3 lần liên tiếp không đủ bắt lỗi ~27%)
-- [ ] Không dùng `networkidle` / `load` làm điều kiện sẵn sàng (đặc biệt khi chạy Firefox)
+- [ ] Test passes 5+ consecutive runs
 
 ---
 

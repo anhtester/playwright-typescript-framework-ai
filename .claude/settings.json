@@ -9,7 +9,10 @@
       "Execute shell commands for testing"
     ],
     "deny": [
-      "Delete source files without confirmation"
+      "Delete source files without confirmation",
+      "Commit to remote repositories",
+      "Push to remote repositories",
+      "Install global packages"
     ]
   }
 }
