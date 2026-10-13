@@ -6,7 +6,7 @@ on:
   pull_request:
   # Chạy hằng ngày 21:37 giờ Việt Nam (UTC+7) = 14:37 UTC — cron GitHub luôn tính theo UTC, có thể trễ vài phút khi GitHub tải cao
   schedule:
-    - cron: '37 14 * * *'
+    - cron: '50 14 * * *'
   workflow_dispatch:
     inputs:
       grep:
