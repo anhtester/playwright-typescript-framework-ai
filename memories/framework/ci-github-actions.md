@@ -13,6 +13,8 @@ Chi tiết ở `README.md` mục 7 và `.github/workflows/playwright.yml`.
 - Chạy `run-browsers.mjs --with-api`: API → Chrome → Edge → Firefox, `timeout-minutes: 60`, `WORKERS: 3` (hạ từ 5 ngày 13-10-2026 theo yêu cầu user — local `.env` vẫn 5), artifact duy nhất `test-reports` (toàn bộ `reports/`). CI retry 1 lần, headless.
 - **8 Repository secrets user phải tự thêm**: `TEST_EMAIL` · `TEST_PASSWORD` · `CRM_ADMIN_EMAIL` · `CRM_ADMIN_PASSWORD` · `CRM_PM_EMAIL` · `CRM_PM_PASSWORD` · `CMS_ADMIN_EMAIL` · `CMS_ADMIN_PASSWORD`. URL là Repository variables (có mặc định).
 - Workflow chỉ chạy khi thư mục framework là **gốc repo** — giờ đã đúng (repo này đã tách riêng).
+- **Repo GitHub (13-10-2026):** `anhtester/playwright-typescript-framework-ai`, **public** (user chọn). Đã khai 12 secret tài khoản + 4 Repository variables `BASE_URL` · `API_URL` · `CRM_URL` · `CMS_URL` (lấy từ `.env`).
+- **Bẫy:** `gh secret set -f .env` đẩy cả biến không bí mật (`HEADLESS=true`, `LOG_LEVEL=info`…) thành secret → GitHub che mọi chuỗi `true`/`info` trong log. Chỉ đưa biến tài khoản vào secret; URL vào variables; còn lại workflow tự khai ở `env:`.
 
 ## CI tạm chỉ chạy Chrome (13-10-2026)
 User chốt: CI chạy trước trên Chrome, tắt Edge/Firefox. Điều khiển bằng `env.BROWSERS` đầu workflow (`chrome` → `chrome,edge,firefox` để bật lại); bước cài trình duyệt và Allure "Browsers" (qua `RUN_BROWSERS` của `run-browsers.mjs`) tự theo. Local cũng chỉ Chrome: `BROWSERS=chrome` trong `.env` — `run-browsers.mjs` tự nạp `.env` (không ghi đè biến CI đã đặt), `--browsers=` ghi đè cho 1 lần chạy. Chi tiết [[chay-test-da-trinh-duyet]].
