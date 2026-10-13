@@ -138,6 +138,14 @@ jobs:
           path: reports/
           retention-days: 14
 
+      # Tóm tắt kết quả + link Allure report lên Slack (README mục 7) — chưa khai secret SLACK_WEBHOOK_URL thì tự bỏ qua
+      - name: Gửi kết quả lên Slack
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REPORT_URL: ${{ env.PUBLISH_REPORT == 'true' && format('{0}/', env.PAGES_URL) || '' }}
+        run: node scripts/slack-notify.mjs
+
   # Public Allure report: https://<owner>.github.io/<repo>/ — chạy cả khi test FAIL (report đỏ cũng cần xem)
   deploy-report:
     name: Public Allure report (GitHub Pages)

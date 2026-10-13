@@ -8,6 +8,7 @@
 #                     CMS_ADMIN_EMAIL · CMS_ADMIN_PASSWORD
 #       Tuỳ chọn (4): CRM_CUSTOMER_EMAIL · CRM_CUSTOMER_PASSWORD (thiếu → CRM_LOGIN_TC_019, 020 SKIP)
 #                     CRM_TC014_EMAIL · CRM_TC014_PASSWORD       (thiếu → CRM_LOGIN_TC_014 SKIP)
+#                     SLACK_WEBHOOK_URL                          (thiếu → không gửi kết quả lên Slack)
 #     KHÔNG viết lại dạng `TEST_EMAIL: $TEST_EMAIL` ở đây — thừa (runner đã đưa vào), và biến chưa khai có thể
 #     thành chữ "$TEST_EMAIL" thay vì rỗng → test tưởng có tài khoản.
 #     Bước `npm run check:env` đầu job dừng ngay nếu thiếu biến bắt buộc, in tên biến thiếu (không in giá trị).
@@ -84,6 +85,8 @@ playwright:
   after_script:
     - npm run report:generate
     - npm run report:single
+    # Tóm tắt kết quả lên Slack — chưa khai biến SLACK_WEBHOOK_URL (Settings → CI/CD → Variables, Masked) thì tự bỏ qua
+    - REPORT_URL=$([ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ] && echo "$CI_PAGES_URL/") node scripts/slack-notify.mjs
   artifacts:
     when: always
     name: test-reports

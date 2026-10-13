@@ -21,6 +21,7 @@
     "test:list": "playwright test --list",
     "typecheck": "tsc --noEmit",
     "check:env": "node scripts/check-env.mjs",
+    "notify:slack": "node scripts/slack-notify.mjs",
     "report": "node scripts/allure.mjs report",
     "report:generate": "node scripts/allure.mjs generate",
     "report:open": "node scripts/allure.mjs open",

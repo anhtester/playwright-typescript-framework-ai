@@ -27,6 +27,10 @@ User yêu cầu. GitHub: `schedule` cron `37 14 * * *` (UTC = giờ VN − 7), l
 User yêu cầu xem report trực tiếp trên GitHub → https://anhtester.github.io/playwright-typescript-framework-ai/ (Pages nguồn "GitHub Actions", job `deploy-report`, chỉ `main`, chạy cả khi FAIL; history lấy bằng `curl` từ bản đang public). GitLab: job `pages`.
 **How to apply:** chỉ public `reports/allure-report` — đã quét artifact CI: không có mật khẩu, nhưng **email đăng nhập hiện trong tên step**. Không bao giờ đưa `reports/html`/trace lên Pages. Thêm attachment mới → quét lại trước khi push.
 
+## Gửi kết quả CI lên Slack (13-10-2026)
+User yêu cầu đẩy report sau khi chạy sang Slack → `scripts/slack-notify.mjs` (Incoming Webhook, secret `SLACK_WEBHOOK_URL`, thiếu thì bỏ qua; gửi lỗi không làm đỏ job). Bước cuối job GitHub + `after_script` GitLab.
+**How to apply:** đếm FAIL từ lá `data/suites.json` — **không** quét `data/test-cases/` (chứa cả lần retry → đếm thừa, đã gặp: summary 3 FAIL, quét ra 10). Tin nhắn chỉ có số liệu + tên test + TC ID, không email/mật khẩu/nội dung lỗi. Kênh dự kiến `#project-crm` (xem [[ban-giao-va-bao-cao]]) — webhook do user tự tạo.
+
 ## CI bỏ qua `@known-bug` (13-10-2026)
 User chốt: CI chạy `--grep-invert @known-bug`; bấm tay workflow + tick `include_known_bugs` để chạy lại nhóm đó.
 

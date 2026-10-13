@@ -207,6 +207,9 @@ Cấu hình một lần trong **Settings → Secrets and variables → Actions**
 | Secret | `CMS_ADMIN_EMAIL` · `CMS_ADMIN_PASSWORD` | Tài khoản quản trị Active eCommerce CMS |
 | Variable (tuỳ chọn) | `BASE_URL` · `API_URL` | Mặc định `https://book.anhtester.com` |
 | Variable (tuỳ chọn) | `CRM_URL` · `CMS_URL` | Mặc định `https://crm.anhtester.com` · `https://cms.anhtester.com` |
+| Secret (tuỳ chọn) | `SLACK_WEBHOOK_URL` | Incoming Webhook của kênh Slack nhận kết quả — thiếu thì không gửi |
+
+**Thông báo Slack:** bước cuối của job chạy `scripts/slack-notify.mjs` (cả khi FAIL) — gửi số passed/failed/broken/skipped, số test flaky, tối đa 10 test FAIL kèm TC ID, nút mở Allure report và log lượt chạy. Tin nhắn **không** chứa email, mật khẩu hay nội dung lỗi. Tạo webhook: Slack → *Apps* → *Incoming Webhooks* (hoặc api.slack.com/apps → *Create New App* → bật *Incoming Webhooks* → *Add New Webhook to Workspace* → chọn kênh) → copy URL vào secret. Thử từ máy: điền `SLACK_WEBHOOK_URL` trong `.env` rồi `npm run notify:slack` (đọc `reports/allure-report` đang có).
 
 CI chạy `run-browsers.mjs --with-api` (API → các trình duyệt trong `env.BROWSERS` ở đầu workflow — **hiện chỉ `chrome`**; bật lại đủ 3 bằng `BROWSERS: chrome,edge,firefox`, bước cài trình duyệt tự theo) và **bỏ qua nhóm `@known-bug`** (`--grep-invert @known-bug`) — các test phơi bug của app ở mục 9 dự kiến FAIL, để chung thì CI đỏ mọi lần push và không nhận ra lỗi mới. Retest bug đã sửa: bấm tay workflow, tick **include_known_bugs** (có thể ghép ô lọc `@known-bug` để chỉ chạy nhóm đó). Số luồng mỗi trình duyệt: sửa `env.WORKERS` ở đầu workflow. Workflow còn **tự chạy hằng ngày lúc 21:37 giờ Việt Nam** (`schedule` cron `37 14 * * *` — GitHub tính theo UTC); đổi giờ thì sửa dòng `cron` trong khối `on:` (giờ VN trừ 7).
 
