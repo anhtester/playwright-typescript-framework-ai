@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "login-response.schema.json",
+  "title": "POST /api/login — 200",
+  "type": "object",
+  "required": ["msg", "accessToken", "exp"],
+  "properties": {
+    "msg": { "type": "string", "minLength": 1 },
+    "accessToken": {
+      "description": "JWT 3 phần ngăn cách bởi dấu chấm",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+    },
+    "exp": { "type": "string", "minLength": 1 }
+  }
+}

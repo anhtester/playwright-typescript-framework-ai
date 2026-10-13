@@ -1,0 +1,23 @@
+[
+  {
+    "testId": "BOOK_BOOK_TC_004",
+    "title": "API danh sách sách từ chối limit = 0 (dưới biên nhỏ nhất)",
+    "description": "Kiểm tra gọi GET /api/book với limit=0 (biên dưới là 1) thì API trả 422 \"Invalid data.\".",
+    "query": { "limit": 0 },
+    "expected": { "status": 422, "msg": "Invalid data." }
+  },
+  {
+    "testId": "BOOK_BOOK_TC_005",
+    "title": "API danh sách sách từ chối limit = 10001 (vượt biên lớn nhất)",
+    "description": "Kiểm tra gọi GET /api/book với limit=10001 (biên trên là 10000) thì API trả 422 \"Invalid data.\".",
+    "query": { "limit": 10001 },
+    "expected": { "status": 422, "msg": "Invalid data." }
+  },
+  {
+    "testId": "BOOK_BOOK_TC_006",
+    "title": "API danh sách sách từ chối page = 0 (dưới biên nhỏ nhất)",
+    "description": "Kiểm tra gọi GET /api/book với page=0 (biên dưới là 1) thì API trả 422 \"Invalid data.\".",
+    "query": { "page": 0 },
+    "expected": { "status": 422, "msg": "Invalid data." }
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "testId": "BOOK_AUTH_TC_003",
+    "title": "Không cho đăng ký khi email sai định dạng",
+    "description": "Kiểm tra điền form hợp lệ nhưng Email không đúng định dạng rồi bấm Register thì form báo \"Invalid email address\" và vẫn ở trang Sign up.",
+    "field": "Email",
+    "input": { "email": "not-an-email" },
+    "expectedError": "Invalid email address"
+  },
+  {
+    "testId": "BOOK_AUTH_TC_004",
+    "title": "Không cho đăng ký khi mật khẩu xác nhận không khớp",
+    "description": "Kiểm tra điền form hợp lệ nhưng Password Confirmation khác Password rồi bấm Register thì form báo \"Password confirmation does not match.\" và vẫn ở trang Sign up.",
+    "field": "Password Confirmation",
+    "input": { "passwordConfirmation": "Mismatch@00000" },
+    "expectedError": "Password confirmation does not match."
+  }
+]

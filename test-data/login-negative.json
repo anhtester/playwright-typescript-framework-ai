@@ -1,0 +1,23 @@
+[
+  {
+    "testId": "BOOK_AUTH_TC_013",
+    "title": "API đăng nhập bằng email chưa đăng ký trả 404",
+    "description": "Kiểm tra gọi POST /api/login với email chưa từng đăng ký thì API trả 404 \"User not found.\" kèm lỗi ở field email.",
+    "payload": { "email": "{{UNIQUE_EMAIL}}", "password": "{{RANDOM_PASSWORD}}" },
+    "expected": { "status": 404, "msg": "User not found.", "errorField": "email" }
+  },
+  {
+    "testId": "BOOK_AUTH_TC_014",
+    "title": "API đăng nhập bằng email sai định dạng trả 422",
+    "description": "Kiểm tra gọi POST /api/login với email không đúng định dạng thì API trả 422 \"Invalid data.\" kèm lỗi ở field email.",
+    "payload": { "email": "not-an-email", "password": "{{RANDOM_PASSWORD}}" },
+    "expected": { "status": 422, "msg": "Invalid data.", "errorField": "email" }
+  },
+  {
+    "testId": "BOOK_AUTH_TC_015",
+    "title": "API đăng nhập thiếu trường password trả 422",
+    "description": "Kiểm tra gọi POST /api/login không gửi trường password thì API trả 422 \"Invalid data.\" kèm lỗi ở field password.",
+    "payload": { "email": "{{UNIQUE_EMAIL}}" },
+    "expected": { "status": 422, "msg": "Invalid data.", "errorField": "password" }
+  }
+]

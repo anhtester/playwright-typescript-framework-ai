@@ -1,0 +1,93 @@
+# GitLab CI — tương đương .github/workflows/playwright.yml (README mục 7)
+#
+# Biến môi trường — đủ bộ như .env.example:
+#   • Không bí mật (URL, số luồng, timeout…) → khai ở khối `variables:` bên dưới
+#   • Tài khoản test → Settings → CI/CD → Variables (Masked nếu được, KHÔNG tick Protected), runner tự đưa vào job:
+#       Bắt buộc (8): TEST_EMAIL · TEST_PASSWORD
+#                     CRM_ADMIN_EMAIL · CRM_ADMIN_PASSWORD · CRM_PM_EMAIL · CRM_PM_PASSWORD
+#                     CMS_ADMIN_EMAIL · CMS_ADMIN_PASSWORD
+#       Tuỳ chọn (4): CRM_CUSTOMER_EMAIL · CRM_CUSTOMER_PASSWORD (thiếu → CRM_LOGIN_TC_019, 020 SKIP)
+#                     CRM_TC014_EMAIL · CRM_TC014_PASSWORD       (thiếu → CRM_LOGIN_TC_014 SKIP)
+#     KHÔNG viết lại dạng `TEST_EMAIL: $TEST_EMAIL` ở đây — thừa (runner đã đưa vào), và biến chưa khai có thể
+#     thành chữ "$TEST_EMAIL" thay vì rỗng → test tưởng có tài khoản.
+#     Bước `npm run check:env` đầu job dừng ngay nếu thiếu biến bắt buộc, in tên biến thiếu (không in giá trị).
+
+workflow:
+  rules:
+    # Merge request → pipeline MR; branch đang có MR mở thì bỏ pipeline branch để không chạy trùng
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    # Push lên nhánh mặc định (main) · bấm tay Build → Pipelines → Run pipeline
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+variables:
+  # Số luồng song song MỖI trình duyệt — runner SaaS mặc định (saas-linux-small) chỉ 2 vCPU, chập chờn thì hạ xuống 2–3.
+  # Sửa ĐÚNG dòng này, không đụng playwright.config.ts
+  WORKERS: '3'
+  # Trình duyệt test UI, cách nhau dấu phẩy: chrome · edge · firefox. Đủ 3: 'chrome,edge,firefox'.
+  # run-browsers.mjs đọc thẳng biến này
+  BROWSERS: 'chrome'
+  HEADLESS: 'true'
+  # URL không bí mật — có giá trị mặc định, CI/CD Variables cùng tên sẽ đè lên
+  BASE_URL: 'https://book.anhtester.com'
+  API_URL: 'https://book.anhtester.com'
+  CRM_URL: 'https://crm.anhtester.com'
+  CMS_URL: 'https://cms.anhtester.com'
+  # Tinh chỉnh — cùng giá trị mặc định với .env.example
+  TIMEOUT: '60000'
+  EXPECT_TIMEOUT: '10000'
+  API_SLA_MS: '2000'
+  VIEWPORT: '1920x1080'
+  TEST_EMAIL_DOMAIN: 'auto.test'
+  LOG_LEVEL: 'info'
+  # 2 ô hiện trong form Run pipeline khi bấm tay
+  GREP:
+    value: ''
+    description: 'Lọc test theo tag, vd @smoke hoặc @api (để trống = chạy tất cả)'
+  INCLUDE_KNOWN_BUGS:
+    value: 'false'
+    options: ['false', 'true']
+    description: 'true = chạy cả test @known-bug (dự kiến FAIL vì bug của app) — dùng khi retest bug đã sửa'
+
+playwright:
+  stage: test
+  # Image chính chủ Playwright: Node + thư viện hệ thống + Firefox. Nâng @playwright/test thì nâng tag này theo
+  image: mcr.microsoft.com/playwright:v1.63.0-noble
+  timeout: 60m
+  # Pipeline mới của cùng nhánh huỷ pipeline cũ đang chạy (cần bật Auto-cancel redundant pipelines — mặc định đã bật)
+  interruptible: true
+  cache:
+    key:
+      files: [package-lock.json]
+    paths: [.npm/]
+  before_script:
+    # Allure 2 là app Java — image Playwright không có sẵn
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends openjdk-17-jre-headless > /dev/null
+    - npm ci --cache .npm --prefer-offline
+    # Chỉ cài trình duyệt có trong BROWSERS — tên Playwright của Edge là msedge. Chrome/Edge bản thật, không có sẵn trong image
+    - npx playwright install --with-deps $(echo "$BROWSERS" | tr ',' ' ' | sed 's/\bedge\b/msedge/')
+  script:
+    - npm run check:env
+    - npm run typecheck
+    # API 1 lượt → UI tuần tự từng trình duyệt trong BROWSERS, mỗi trình duyệt song song WORKERS luồng.
+    # @known-bug = test phơi bug của app, dự kiến FAIL (README mục 9) — mặc định bỏ qua để CI chỉ đỏ khi có lỗi mới
+    - |
+      ARGS=()
+      if [ -n "$GREP" ]; then ARGS+=(--grep "$GREP"); fi
+      if [ "$INCLUDE_KNOWN_BUGS" != "true" ]; then ARGS+=(--grep-invert @known-bug); fi
+      node scripts/run-browsers.mjs --with-api "${ARGS[@]}"
+  # Chạy cả khi test FAIL — tương đương if: always() bên GitHub
+  after_script:
+    - npm run report:generate
+    - npm run report:single
+  artifacts:
+    when: always
+    name: test-reports
+    paths: [reports/]
+    expire_in: 14 days
+    # reports/html + trace ghi NGUYÊN mật khẩu điền vào form (README mục 4) — chỉ thành viên Developer trở lên tải được
+    access: developer
+    # Hiện link "Test reports" ngay trong merge request
+    expose_as: 'Test reports'

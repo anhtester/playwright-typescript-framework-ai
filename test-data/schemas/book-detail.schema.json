@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "book-detail.schema.json",
+  "title": "GET /api/book/{id} — 200",
+  "allOf": [
+    { "$ref": "book.schema.json" },
+    {
+      "required": ["picture"],
+      "properties": {
+        "picture": {
+          "description": "Khác danh sách: chi tiết trả thông tin file ảnh dạng object",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "path", "isFile", "size", "type", "modified", "created"],
+            "properties": {
+              "name": { "type": "string" },
+              "path": { "type": "string" },
+              "isFile": { "type": "boolean" },
+              "size": { "type": "number" },
+              "type": { "type": "string" },
+              "modified": { "type": ["string", "number"] },
+              "created": { "type": ["string", "number"] }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

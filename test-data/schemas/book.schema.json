@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "book.schema.json",
+  "title": "Book — phần chung của item danh sách và chi tiết sách (bám đúng spec /swagger/json)",
+  "description": "Field picture KHÔNG nằm ở đây: danh sách trả mảng string, chi tiết trả mảng object — khai riêng ở từng schema.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "categories",
+    "auth",
+    "status",
+    "createdAt",
+    "updatedAt",
+    "price",
+    "currentPrice",
+    "viewCount",
+    "promotions"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "slug": { "type": "string" },
+    "categories": { "type": "array", "items": { "type": "string" } },
+    "auth": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["name", "email", "avatarUrl"],
+          "properties": {
+            "name": { "type": "string" },
+            "email": { "type": "string" },
+            "avatarUrl": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "status": { "type": "string", "enum": ["AVAILABLE", "UNAVAILABLE"] },
+    "createdAt": { "type": ["string", "number"] },
+    "updatedAt": { "type": ["string", "number"] },
+    "price": { "type": "number" },
+    "currentPrice": { "type": "number" },
+    "viewCount": { "type": "number" },
+    "promotions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "type", "startDate", "endDate", "code", "value"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "type": { "type": "string", "enum": ["PERCENTAGE", "FIXED_AMOUNT", "FREE_SHIPPING"] },
+          "startDate": { "type": ["string", "number"] },
+          "endDate": { "type": ["string", "number"] },
+          "code": { "type": "string" },
+          "value": { "type": "number" }
+        }
+      }
+    }
+  }
+}

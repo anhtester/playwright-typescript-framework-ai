@@ -1,0 +1,114 @@
+name: Playwright Tests (UI + API)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      grep:
+        description: 'Lọc test theo tag, vd @smoke hoặc @api (để trống = chạy tất cả)'
+        required: false
+        default: ''
+      include_known_bugs:
+        description: 'Chạy cả test @known-bug (dự kiến FAIL vì bug của app) — tick khi retest bug đã sửa'
+        type: boolean
+        default: false
+
+concurrency:
+  group: playwright-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Số luồng song song MỖI trình duyệt (các trình duyệt chạy tuần tự) — runner GitHub 2 vCPU chạy chập chờn thì hạ xuống 2–3.
+  # Sửa ĐÚNG dòng này, không đụng playwright.config.ts
+  WORKERS: 3
+  # Trình duyệt test UI, cách nhau dấu phẩy: chrome · edge · firefox. Đủ 3: 'chrome,edge,firefox'.
+  # run-browsers.mjs đọc thẳng biến này (local đọc từ .env)
+  BROWSERS: chrome
+
+jobs:
+  test:
+    name: UI + API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # URL không bí mật → Repository variables (có giá trị mặc định). Tài khoản → Repository secrets
+      BASE_URL: ${{ vars.BASE_URL || 'https://book.anhtester.com' }}
+      API_URL: ${{ vars.API_URL || 'https://book.anhtester.com' }}
+      TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+      CRM_URL: ${{ vars.CRM_URL || 'https://crm.anhtester.com' }}
+      CRM_ADMIN_EMAIL: ${{ secrets.CRM_ADMIN_EMAIL }}
+      CRM_ADMIN_PASSWORD: ${{ secrets.CRM_ADMIN_PASSWORD }}
+      CRM_PM_EMAIL: ${{ secrets.CRM_PM_EMAIL }}
+      CRM_PM_PASSWORD: ${{ secrets.CRM_PM_PASSWORD }}
+      # Tuỳ chọn — chưa khai secret thì test tương ứng tự SKIP: CRM_LOGIN_TC_019, 020 (khách hàng) · CRM_LOGIN_TC_014
+      CRM_CUSTOMER_EMAIL: ${{ secrets.CRM_CUSTOMER_EMAIL }}
+      CRM_CUSTOMER_PASSWORD: ${{ secrets.CRM_CUSTOMER_PASSWORD }}
+      CRM_TC014_EMAIL: ${{ secrets.CRM_TC014_EMAIL }}
+      CRM_TC014_PASSWORD: ${{ secrets.CRM_TC014_PASSWORD }}
+      CMS_URL: ${{ vars.CMS_URL || 'https://cms.anhtester.com' }}
+      CMS_ADMIN_EMAIL: ${{ secrets.CMS_ADMIN_EMAIL }}
+      CMS_ADMIN_PASSWORD: ${{ secrets.CMS_ADMIN_PASSWORD }}
+      HEADLESS: 'true'
+      # Tinh chỉnh — cùng giá trị mặc định với .env.example
+      TIMEOUT: '60000'
+      EXPECT_TIMEOUT: '10000'
+      API_SLA_MS: '2000'
+      VIEWPORT: '1920x1080'
+      TEST_EMAIL_DOMAIN: 'auto.test'
+      LOG_LEVEL: 'info'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      # Allure 2 là app Java — khai rõ JDK thay vì trông vào image của runner
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cài dependencies (gồm Allure CLI trong project)
+        run: npm ci
+
+      # Chỉ cài trình duyệt có trong BROWSERS — tên Playwright của Edge là msedge
+      - name: Cài trình duyệt (${{ env.BROWSERS }})
+        run: npx playwright install --with-deps $(echo "$BROWSERS" | tr ',' ' ' | sed 's/\bedge\b/msedge/')
+
+      # Thiếu secret bắt buộc → dừng ngay, in tên biến thiếu (không in giá trị)
+      - name: Kiểm tra biến môi trường
+        run: npm run check:env
+
+      - name: Kiểm tra kiểu TypeScript
+        run: npm run typecheck
+
+      # API 1 lượt → UI tuần tự từng trình duyệt trong BROWSERS, mỗi trình duyệt song song WORKERS luồng.
+      # @known-bug = test phơi bug của app, dự kiến FAIL (README mục 9) — mặc định bỏ qua để CI chỉ đỏ khi có lỗi mới
+      - name: Chạy test
+        env:
+          GREP: ${{ inputs.grep }}
+          SKIP_KNOWN_BUGS: ${{ inputs.include_known_bugs != true }}
+        run: |
+          ARGS=()
+          [ -n "$GREP" ] && ARGS+=(--grep "$GREP")
+          [ "$SKIP_KNOWN_BUGS" = "true" ] && ARGS+=(--grep-invert @known-bug)
+          node scripts/run-browsers.mjs --with-api "${ARGS[@]}"
+
+      - name: Sinh Allure report (nhiều file + 1 file)
+        if: always()
+        run: |
+          npm run report:generate
+          npm run report:single
+
+      - name: Upload reports/
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports/
+          retention-days: 14

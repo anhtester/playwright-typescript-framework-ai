@@ -1,0 +1,58 @@
+{
+  "$comment": "Bảng biến thể của TC API AUTH part 01 (docs/testcases/_book-api/auth/api/parts/part_01_api_dang_ky_dang_nhap.md). Placeholder {{TÊN}} được thay lúc chạy — giá trị unique không ghi cứng ở đây.",
+  "contentTypes": [
+    { "variant": "a", "encoding": "json", "label": "application/json" },
+    { "variant": "b", "encoding": "form", "label": "application/x-www-form-urlencoded" },
+    { "variant": "c", "encoding": "multipart", "label": "multipart/form-data" }
+  ],
+  "loginContentTypes": [
+    { "variant": "a", "encoding": "json", "label": "application/json" },
+    { "variant": "b", "encoding": "multipart", "label": "multipart/form-data" },
+    { "variant": "c", "encoding": "form", "label": "application/x-www-form-urlencoded" }
+  ],
+  "registerInvalidName": [
+    { "variant": "a", "label": "không có khoá name", "payload": { "email": "{{EMAIL}}", "password": "{{PASSWORD}}" } },
+    { "variant": "b", "label": "name sai kiểu (số 123)", "payload": { "name": 123, "email": "{{EMAIL}}", "password": "{{PASSWORD}}" } }
+  ],
+  "invalidEmails": [
+    { "variant": "a", "email": "khong-phai-email" },
+    { "variant": "b", "email": "auto_auth@" },
+    { "variant": "c", "email": "@auto.test" },
+    { "variant": "d", "email": "auto@auth@auto.test" },
+    { "variant": "e", "email": "auto auth@auto.test" },
+    { "variant": "f", "email": "' OR 1=1--" }
+  ],
+  "loginInvalidEmailVariants": ["a", "b", "c", "d"],
+  "emailCaseVariants": [
+    { "variant": "a", "label": "viết hoa toàn bộ", "email": "{{EMAIL_UPPER}}" },
+    { "variant": "b", "label": "hoa thường lẫn", "email": "{{EMAIL_MIXED}}" }
+  ],
+  "massAssignmentExtras": {
+    "role": "admin",
+    "isAdmin": true,
+    "isActive": false,
+    "id": "{{CUSTOM_ID}}",
+    "config": { "theme": "hacked" }
+  },
+  "attackNames": [
+    { "variant": "a", "label": "XSS", "emailLabel": "xss", "name": "<script>alert(1)</script>" },
+    { "variant": "b", "label": "SQL injection", "emailLabel": "sqli", "name": "Robert'); DROP TABLE users;--" },
+    { "variant": "c", "label": "chuỗi NoSQL", "emailLabel": "nosql", "name": "{\"$gt\":\"\"}" },
+    { "variant": "d", "label": "10.000 ký tự", "emailLabel": "long", "name": "{{LONG_10000}}", "knownBug": true }
+  ],
+  "wrongPasswords": [
+    { "variant": "a", "label": "sai hẳn", "password": "{{WRONG_PASSWORD}}" },
+    { "variant": "b", "label": "chỉ khác hoa thường", "password": "{{PASSWORD_CASE_SWAPPED}}" },
+    { "variant": "c", "label": "thừa dấu cách cuối", "password": "{{PASSWORD}} " }
+  ],
+  "attackPasswords": [
+    { "variant": "a", "label": "' OR '1'='1", "password": "' OR '1'='1" },
+    { "variant": "b", "label": "' OR 1=1--", "password": "' OR 1=1--" },
+    { "variant": "c", "label": "object {\"$ne\":null}", "password": { "$ne": null } },
+    { "variant": "d", "label": "10.000 ký tự", "password": "{{LONG_10000}}" }
+  ],
+  "authorizationHeaders": [
+    { "variant": "a", "label": "không gửi header Authorization", "headers": {} },
+    { "variant": "b", "label": "Authorization là token rác", "headers": { "Authorization": "Bearer abc.def.ghi" } }
+  ]
+}

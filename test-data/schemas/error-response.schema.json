@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "error-response.schema.json",
+  "title": "Response lỗi chung — 400 / 401 / 404 / 422",
+  "type": "object",
+  "required": ["msg"],
+  "properties": {
+    "msg": { "type": "string", "minLength": 1 },
+    "fields": {
+      "description": "Lỗi theo từng field: { <tên field>: [<thông báo>] }",
+      "type": "object",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+    }
+  }
+}

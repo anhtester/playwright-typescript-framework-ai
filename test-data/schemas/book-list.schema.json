@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "book-list.schema.json",
+  "title": "GET /api/book — 200",
+  "type": "object",
+  "required": ["list", "pagination"],
+  "additionalProperties": false,
+  "properties": {
+    "list": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          { "$ref": "book.schema.json" },
+          {
+            "required": ["slug", "picture"],
+            "properties": {
+              "picture": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        ]
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "required": ["total", "totalPage", "currentPage", "lengthData"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "totalPage": { "type": "integer", "minimum": 0 },
+        "currentPage": { "type": "integer", "minimum": 1 },
+        "lengthData": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

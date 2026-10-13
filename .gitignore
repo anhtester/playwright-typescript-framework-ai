@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Test output — gom hết trong reports/ (Allure results/report, HTML, log, screenshot, trace)
+reports/
+
+# Thư mục mặc định của tool — phòng khi config output bị bỏ sót
+allure-results/
+allure-report/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Môi trường & bí mật
+.env
+.env.*
+!.env.example
+
+# Công cụ debug / IDE / OS
+.playwright-mcp/
+# Permission Claude Code tích luỹ theo từng máy — chứa đường dẫn tuyệt đối, không dùng chung được
+.claude/settings.local.json
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

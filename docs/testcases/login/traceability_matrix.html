@@ -1,0 +1,370 @@
+<title>RTM Đăng nhập CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: báo cáo kiểm thử một cột 1120px — dải mã REQ/TC làm "vân tay" độ phủ, rồi ma trận lọc được, backlog, điểm cần xác nhận */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --sunk: #eaeef2;
+  --ink: #17212c;
+  --muted: #5b6977;
+  --line: #d9dfe6;
+  --accent: #2346a0;
+  --accent-soft: #e3e9f8;
+  --ok: #2b8549;
+  --part: #7a4cc0;
+  --manual: #c2860f;
+  --bad: #c0392f;
+  --out: #9aa4af;
+  --warn-bg: #fdf3e1;
+  --warn-ink: #7a4f05;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --surface: #151c24; --sunk: #1b232d; --ink: #e5eaf0; --muted: #94a2b1; --line: #27313c;
+    --accent: #8ba6f4; --accent-soft: #1d2a4a; --ok: #5bbb7b; --part: #a888e8; --manual: #e3aa3d; --bad: #ec6c61; --out: #5d6976;
+    --warn-bg: #2b2210; --warn-ink: #f0c877; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --surface: #151c24; --sunk: #1b232d; --ink: #e5eaf0; --muted: #94a2b1; --line: #27313c;
+  --accent: #8ba6f4; --accent-soft: #1d2a4a; --ok: #5bbb7b; --part: #a888e8; --manual: #e3aa3d; --bad: #ec6c61; --out: #5d6976;
+  --warn-bg: #2b2210; --warn-ink: #f0c877; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; padding-inline: 20px; padding-block: 40px 64px; }
+.wrap { max-width: 1120px; margin-inline: auto; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.005em; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; font-weight: 700; }
+h2 { font-size: 24px; font-weight: 600; }
+h3 { font-size: 17px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.mono { font-family: var(--font-mono); }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+section { display: grid; gap: 18px; min-width: 0; }
+.sec-head { display: grid; gap: 6px; }
+code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunk); padding: 1px 5px; border-radius: 4px; }
+
+/* Header */
+header { display: grid; gap: 22px; border-bottom: 2px solid var(--ink); padding-bottom: 26px; }
+.title-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 16px; }
+.title-row > div { display: grid; gap: 10px; min-width: 0; }
+.stamp { font-family: var(--font-mono); font-size: 12px; border: 1.5px solid var(--accent); color: var(--accent); padding: 6px 10px; border-radius: 4px; line-height: 1.4; text-align: right; }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 28px; }
+.meta div { display: grid; gap: 2px; min-width: 0; }
+.meta dt { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.meta dd { margin: 0; font-size: 14px; }
+
+/* Cảnh báo phạm vi */
+.scope { background: var(--warn-bg); color: var(--warn-ink); border-radius: var(--r); padding: 18px 20px; display: grid; gap: 12px; }
+.scope strong { font-weight: 600; }
+.scope-bar { display: grid; grid-template-columns: repeat(23, 1fr); gap: 3px; max-width: 520px; }
+.scope-bar span { height: 14px; border-radius: 2px; background: currentColor; opacity: 0.22; }
+.scope-bar span.done { opacity: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font-mono); font-size: 12px; padding: 2px 8px; border: 1px solid currentColor; border-radius: 99px; opacity: 0.85; }
+
+/* Chỉ số */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.kpi { background: var(--surface); padding: 20px 22px; display: grid; gap: 6px; align-content: start; }
+.kpi .num { font-family: var(--font-display); font-size: 42px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi .num small { font-size: 22px; color: var(--muted); font-weight: 500; }
+.kpi .sub { font-size: 13.5px; color: var(--muted); }
+.meter { height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; display: flex; }
+.meter i { display: block; height: 100%; }
+
+/* Dải mã */
+.strip-block { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; display: grid; gap: 14px; min-width: 0; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 4px; }
+.cell { appearance: none; border: 0; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; height: 34px; border-radius: 4px; cursor: pointer; color: #fff; display: grid; place-items: center; position: relative; font-variant-numeric: tabular-nums; }
+.cell:focus-visible, .filter:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cell.s-full { background: var(--ok); }
+.cell.s-part { background: var(--part); }
+.cell.s-manual { background: var(--manual); }
+.cell.s-none { background: var(--bad); }
+.cell.s-out { background: transparent; color: var(--out); box-shadow: inset 0 0 0 1.5px var(--out); }
+.cell.tc-a { background: var(--accent); }
+.cell.tc-m { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--line); }
+.cell.tc-no { background: repeating-linear-gradient(135deg, var(--sunk) 0 4px, transparent 4px 8px); color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--line); }
+.cell.bug::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 0 1.5px var(--surface); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 18px; }
+
+/* Biểu đồ priority */
+.prio { display: grid; gap: 12px; }
+.prow { display: grid; grid-template-columns: 74px 1fr 52px; gap: 12px; align-items: center; font-size: 13.5px; }
+.prow .lab { font-weight: 500; }
+.prow .val { font-family: var(--font-mono); font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+.ptrack { height: 18px; position: relative; }
+.ptrack .tot { position: absolute; inset: 0 auto 0 0; border-radius: 3px; box-shadow: inset 0 0 0 1.5px var(--line); background: var(--sunk); }
+.ptrack .done { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--accent); }
+.axis { display: grid; grid-template-columns: 74px 1fr 52px; gap: 12px; }
+.axis div { position: relative; height: 16px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.axis span { position: absolute; transform: translateX(-50%); }
+
+/* Bảng */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filter { appearance: none; font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 99px; padding: 5px 12px; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; }
+.filter[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.filter .c { font-family: var(--font-mono); font-size: 12px; opacity: 0.75; }
+.search { margin-left: auto; font: inherit; font-size: 13.5px; padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink); min-width: 0; width: 220px; max-width: 100%; }
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--sunk); white-space: nowrap; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.id { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; font-weight: 500; }
+td.num { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+tr.hl td { background: var(--accent-soft); }
+.tcs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tc { font-family: var(--font-mono); font-size: 12px; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+.tc.a { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.pill::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--dot); flex: none; }
+.p-full { --dot: var(--ok); } .p-part { --dot: var(--part); } .p-manual { --dot: var(--manual); } .p-none { --dot: var(--bad); } .p-out { --dot: var(--out); }
+.tag { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; border-radius: 3px; background: var(--bad); color: #fff; margin-left: 6px; white-space: nowrap; vertical-align: 1px; }
+.tag.soft { background: var(--sunk); color: var(--muted); }
+.empty { padding: 22px 14px; color: var(--muted); text-align: center; }
+.prio-mark { display: inline-block; width: 4px; height: 16px; border-radius: 2px; vertical-align: -3px; margin-right: 8px; background: var(--pc); }
+.pr-Critical { --pc: var(--bad); } .pr-High { --pc: var(--manual); } .pr-Medium { --pc: var(--accent); } .pr-Low { --pc: var(--out); }
+
+/* Cần xác nhận */
+.checks { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.check { background: var(--surface); padding: 16px 20px; display: grid; grid-template-columns: 34px 1fr; gap: 6px 14px; }
+.check .n { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--accent); line-height: 1.1; grid-row: span 3; }
+.check .refs { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); }
+.check .act { font-size: 14px; }
+.check .act b { font-weight: 600; }
+
+/* Bước tiếp theo */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.step { border-top: 3px solid var(--accent); padding-top: 12px; display: grid; gap: 6px; align-content: start; }
+.step .cmd { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); }
+
+footer { border-top: 1px solid var(--line); padding-top: 18px; font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
+
+@media (max-width: 560px) {
+  body { padding-block: 24px 48px; }
+  .search { margin-left: 0; width: 100%; }
+  .stamp { text-align: left; }
+  .prow, .axis { grid-template-columns: 60px 1fr 44px; gap: 8px; }
+  .check { grid-template-columns: 1fr; }
+  .check .n { grid-row: auto; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cell { transition: transform .12s ease; }
+  .cell:hover { transform: translateY(-2px); }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="title-row">
+      <div>
+        <span class="eyebrow">Ma trận truy vết · Perfex CRM · Web</span>
+        <h1>Đăng nhập / Xác thực — <span class="mono" style="font-weight:600">LOGIN</span></h1>
+        <p class="muted">Requirements ↔ Test cases ↔ Automation script. Mọi liên kết được nối bằng mã ID, không có liên kết nào phải suy đoán.</p>
+      </div>
+      <div class="stamp">Lập ngày 13-10-2026<br>REQ-LOGIN-01 → 44 · TC 001 → 051</div>
+    </div>
+    <dl class="meta">
+      <div><dt>Hệ thống</dt><dd>Perfex CRM — <span class="mono">crm.anhtester.com</span>, khu quản trị <span class="mono">/admin</span></dd></div>
+      <div><dt>Requirements</dt><dd>44 REQ · <span class="mono">REQUIREMENTS_LOGIN_SUMMARY.md</span> + <span class="mono">requirements_login_web.md</span></dd></div>
+      <div><dt>Test cases</dt><dd>51 TC · <span class="mono">test_cases_login_web.md</span></dd></div>
+      <div><dt>Automation</dt><dd>20 test · <span class="mono">crm-login.spec.ts</span> (Playwright, đếm từ code thật)</dd></div>
+    </dl>
+  </header>
+
+  <section class="scope" aria-label="Phạm vi của báo cáo">
+    <p><strong>Phạm vi: chỉ module Đăng nhập.</strong> Perfex CRM có 23 module, mới 3 module có tài liệu requirements (LOGIN, CUST, PRJ). 20 module còn lại chưa khảo sát nên không có REQ nào để đo. Con số 100% bên dưới chỉ đúng cho module Đăng nhập, không phản ánh độ phủ của cả hệ thống.</p>
+    <div class="scope-bar" aria-hidden="true" id="scopeBar"></div>
+    <div class="chips" id="scopeChips"></div>
+  </section>
+
+  <section aria-labelledby="h-kpi">
+    <div class="sec-head"><span class="eyebrow">Tổng quan</span><h2 id="h-kpi">Độ phủ tại 13-10-2026</h2></div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section aria-labelledby="h-strip">
+    <div class="sec-head"><span class="eyebrow">Toàn cảnh</span><h2 id="h-strip">Mỗi ô là một mã</h2>
+      <p class="muted">Bấm vào một ô REQ để lọc ma trận chi tiết bên dưới theo REQ đó.</p></div>
+    <div class="strip-block">
+      <h3>44 requirements</h3>
+      <div class="strip" id="reqStrip"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--ok)"></i>Mọi TC đã có script</span>
+        <span><i class="sw" style="background:var(--part)"></i>Một phần TC có script</span>
+        <span><i class="sw" style="background:var(--manual)"></i>Chỉ chạy tay</span>
+        <span><i class="sw" style="box-shadow:inset 0 0 0 1.5px var(--out)"></i>Ngoài phạm vi (PO)</span>
+        <span><i class="sw" style="background:var(--bad);border-radius:50%;width:8px;height:8px"></i>Lỗi hệ thống đã xác nhận</span>
+      </div>
+    </div>
+    <div class="two">
+      <div class="strip-block">
+        <h3>51 test cases</h3>
+        <div class="strip" id="tcStrip"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--accent)"></i>Đã có script</span>
+          <span><i class="sw" style="box-shadow:inset 0 0 0 1.5px var(--line)"></i>Chưa có script</span>
+          <span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--sunk) 0 3px,transparent 3px 6px);box-shadow:inset 0 0 0 1.5px var(--line)"></i>Giữ chạy tay</span>
+        </div>
+      </div>
+      <div class="strip-block">
+        <h3>Automation theo Priority</h3>
+        <div class="prio" id="prio"></div>
+        <p class="muted" style="font-size:13.5px">Đã có script: trọn TC <span class="mono">001→020</span> (giao diện, đăng nhập thành công, kiểm tra dữ liệu nhập). Từ <span class="mono">021</span> trở đi (phiên, CSRF, quên mật khẩu, đăng xuất, phi chức năng) chưa có script nào.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-matrix">
+    <div class="sec-head"><span class="eyebrow">Ma trận chi tiết</span><h2 id="h-matrix">REQ → TC → Script</h2>
+      <p class="muted">Ô TC tô màu là TC đã có script trong <span class="mono">crm-login.spec.ts</span>.</p></div>
+    <div class="toolbar" id="filters">
+      <label for="q" class="eyebrow" style="position:absolute;left:-9999px">Tìm REQ hoặc TC</label>
+      <input id="q" class="search" type="search" placeholder="Tìm REQ, TC hoặc nội dung…" autocomplete="off">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>REQ</th><th>Yêu cầu</th><th>Test cases</th><th>Script</th><th>Trạng thái</th></tr></thead>
+        <tbody id="matrix"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-backlog">
+    <div class="sec-head"><span class="eyebrow">Việc cần làm</span><h2 id="h-backlog">31 TC chưa có script, xếp theo thứ tự đề xuất</h2>
+      <p class="muted">Làm xong 9 TC đầu (Critical và High) thì 9 REQ chuyển sang “mọi TC đã có script”, nâng con số từ 16 lên 25/40.</p></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>TC</th><th>Kịch bản</th><th>REQ</th><th>Priority</th><th>Ghi chú</th></tr></thead>
+        <tbody id="backlog"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-check">
+    <div class="sec-head"><span class="eyebrow">Cần xác nhận</span><h2 id="h-check">5 điểm chưa tính vào số liệu</h2></div>
+    <div class="checks" id="checks"></div>
+  </section>
+
+  <section aria-labelledby="h-next">
+    <div class="sec-head"><span class="eyebrow">Bước tiếp theo</span><h2 id="h-next">Đề xuất</h2></div>
+    <div class="steps">
+      <div class="step"><h3>Automate 4 TC Critical còn lại</h3><p class="muted">TC 021, 025, 032, 036, sau đó 5 TC High có thể automate.</p><span class="cmd">/generate-automation-web</span></div>
+      <div class="step"><h3>Sửa file TC theo điểm 2 và 4</h3><p class="muted">REQ ID của TC_030 và kỳ vọng cũ của TC_019.</p><span class="cmd">/review-testcases · FIX</span></div>
+      <div class="step"><h3>Mở bug cho 3 REQ lỗi</h3><p class="muted">REQ-LOGIN-16, 25, 44, nếu chưa có bug report.</p><span class="cmd">/create-bug-report</span></div>
+      <div class="step"><h3>Khảo sát module kế tiếp</h3><p class="muted">Gợi ý TASK (đang giữ phần kiểm chứng của REQ-LOGIN-30) hoặc DASH.</p><span class="cmd">/generate-requirements-from-website</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Nguồn: <span class="mono">docs/testcases/login/traceability_matrix.md</span> · sinh bằng <span class="mono">/generate-traceability-matrix</span>.</span>
+    <span>Số TC “đã có script” đếm theo nhãn <span class="mono">testId</span> trong code, không theo cột Automation của file TC (cột đó là dự định lúc viết TC).</span>
+  </footer>
+</div>
+
+<script>
+const DATA = {"reqs":[{"id":"01","name":"Truy cập trang đăng nhập","tcs":["001"],"n":1,"s":"full","bug":false,"amb":""},{"id":"02","name":"Thành phần biểu mẫu đăng nhập","tcs":["002","038","042","043","044","048","049","050"],"n":1,"s":"part","bug":false,"amb":""},{"id":"03","name":"Tự động đặt con trỏ vào ô Email","tcs":["002"],"n":1,"s":"full","bug":false,"amb":""},{"id":"04","name":"Logo dẫn về trang chủ","tcs":["004"],"n":1,"s":"full","bug":false,"amb":""},{"id":"05","name":"Không có CAPTCHA","tcs":["003"],"n":1,"s":"full","bug":false,"amb":""},{"id":"06","name":"Đăng nhập bằng thông tin hợp lệ","tcs":["005","006","010","041","050"],"n":3,"s":"part","bug":false,"amb":""},{"id":"07","name":"Email không phân biệt hoa thường","tcs":["007"],"n":1,"s":"full","bug":false,"amb":""},{"id":"08","name":"Ghi nhớ đăng nhập sinh cookie autologin","tcs":["008"],"n":1,"s":"full","bug":false,"amb":""},{"id":"09","name":"Không tích Ghi nhớ thì không phát hành cookie autologin","tcs":["009"],"n":1,"s":"full","bug":false,"amb":""},{"id":"10","name":"Bỏ trống cả hai trường","tcs":["011","043"],"n":1,"s":"part","bug":false,"amb":""},{"id":"11","name":"Bỏ trống riêng Email","tcs":["011"],"n":1,"s":"full","bug":false,"amb":""},{"id":"12","name":"Bỏ trống riêng Mật khẩu","tcs":["011"],"n":1,"s":"full","bug":false,"amb":""},{"id":"13","name":"Chặn email sai định dạng ngay tại trình duyệt","tcs":["012","045","046"],"n":1,"s":"part","bug":false,"amb":""},{"id":"14","name":"Thông báo khi sai thông tin đăng nhập","tcs":["013","014","017","018","040","045","047","050"],"n":4,"s":"part","bug":false,"amb":""},{"id":"15","name":"Thông báo lỗi không tiết lộ email nào có thật","tcs":["013","019"],"n":2,"s":"full","bug":false,"amb":""},{"id":"16","name":"Máy chủ phải giữ lại email đã nhập sau khi đăng nhập thất bại","tcs":["016"],"n":1,"s":"full","bug":true,"amb":""},{"id":"17","name":"Chặn URL nội bộ khi chưa đăng nhập","tcs":["021"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"18","name":"Không ghi nhớ URL đích sau khi chuyển hướng","tcs":["022"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"19","name":"Đã đăng nhập thì không vào lại trang đăng nhập","tcs":["023"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"20","name":"Đã đăng nhập thì không vào trang Quên mật khẩu","tcs":["023"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"21","name":"Biểu mẫu đăng nhập mang mã chống CSRF","tcs":["024"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"22","name":"Từ chối yêu cầu có mã CSRF sai","tcs":["025"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"23","name":"Truy cập trang Quên mật khẩu","tcs":["027"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"24","name":"Trang Quên mật khẩu không có lối quay lại đăng nhập","tcs":["027"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"25","name":"Gửi biểu mẫu Quên mật khẩu khi bỏ trống email","tcs":["028"],"n":0,"s":"manual","bug":true,"amb":""},{"id":"26","name":"Email không tồn tại trong hệ thống","tcs":["029","030"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"27","name":"Email tồn tại thì gửi liên kết đặt lại mật khẩu","tcs":[],"n":0,"s":"out","bug":false,"amb":"AMB-LOGIN-04"},{"id":"28","name":"Liên kết đặt lại mật khẩu sai/hết hạn","tcs":["031"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"29","name":"Mỗi viewport có một lối đăng xuất dùng được","tcs":["032","033"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"30","name":"Cảnh báo khi còn bộ đếm giờ đang chạy","tcs":["034"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"31","name":"Đăng xuất ngay khi không có bộ đếm giờ","tcs":["035"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"32","name":"Kết thúc phiên và về trang đăng nhập","tcs":["036"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"33","name":"URL nội bộ bị chặn lại sau khi đăng xuất","tcs":["036"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"34","name":"Cookie autologin không bị xoá khỏi trình duyệt khi đăng xuất","tcs":[],"n":0,"s":"out","bug":false,"amb":"AMB-LOGIN-06"},{"id":"35","name":"Cookie autologin đọc được bằng JavaScript","tcs":[],"n":0,"s":"out","bug":false,"amb":"AMB-LOGIN-07"},{"id":"36","name":"Không có đăng nhập mạng xã hội","tcs":["003"],"n":1,"s":"full","bug":false,"amb":""},{"id":"37","name":"Trang đăng nhập không nạp tệp JavaScript nào","tcs":["003"],"n":1,"s":"full","bug":false,"amb":""},{"id":"38","name":"Email bỏ qua khoảng trắng thừa đầu/cuối","tcs":["007"],"n":1,"s":"full","bug":false,"amb":""},{"id":"39","name":"Cookie autologin không tự đăng nhập lại sau khi đăng xuất chủ động","tcs":["037"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"40","name":"Cookie autologin khi phiên hết hạn tự nhiên","tcs":[],"n":0,"s":"out","bug":false,"amb":"AMB-LOGIN-15"},{"id":"41","name":"Không khoá tài khoản sau nhiều lần đăng nhập sai","tcs":["015"],"n":1,"s":"full","bug":false,"amb":""},{"id":"42","name":"Phiên đăng nhập hết hạn sau 1 giờ","tcs":["026","051"],"n":0,"s":"manual","bug":false,"amb":""},{"id":"43","name":"Tài khoản khách hàng không đăng nhập được vào khu quản trị","tcs":["019","020"],"n":2,"s":"full","bug":false,"amb":""},{"id":"44","name":"Ép truy cập qua HTTPS","tcs":["039"],"n":0,"s":"manual","bug":true,"amb":""}],"tcs":[{"id":"001","req":["01"],"p":"Critical","plan":"Yes","type":"UI","scen":"Mở trang đăng nhập khi chưa có phiên thì thấy biểu mẫu đăng nhập","bug":false,"a":true},{"id":"002","req":["02","03"],"p":"Critical","plan":"Yes","type":"UI","scen":"Biểu mẫu đăng nhập đủ thành phần và đúng trạng thái mặc định","bug":false,"a":true},{"id":"003","req":["05","36","37"],"p":"Medium","plan":"Yes","type":"UI","scen":"Trang đăng nhập không có CAPTCHA, không đăng nhập bên thứ ba, không nạp JavaScript","bug":false,"a":true},{"id":"004","req":["04"],"p":"Low","plan":"Yes","type":"UI","scen":"Bấm logo trên trang đăng nhập thì về trang chủ công khai","bug":false,"a":true},{"id":"005","req":["06"],"p":"Critical","plan":"Yes","type":"UI","scen":"Đăng nhập bằng tài khoản Admin hợp lệ thì vào được Dashboard","bug":false,"a":true},{"id":"006","req":["06"],"p":"High","plan":"Yes","type":"UI","scen":"Đăng nhập bằng tài khoản Project Manager thì vào Dashboard với bộ menu rút gọn","bug":false,"a":true},{"id":"007","req":["07","38"],"p":"High","plan":"Yes","type":"UI","scen":"Email được chuẩn hoá — khác kiểu chữ và thừa khoảng trắng vẫn đăng nhập được","bug":false,"a":true},{"id":"008","req":["08"],"p":"High","plan":"Partial","type":"UI","scen":"Tích Ghi nhớ đăng nhập thì hệ thống phát hành cookie ghi nhớ","bug":false,"a":true},{"id":"009","req":["09"],"p":"High","plan":"Partial","type":"UI","scen":"Không tích Ghi nhớ đăng nhập thì hoàn toàn không phát hành cookie ghi nhớ","bug":false,"a":true},{"id":"010","req":["06"],"p":"Medium","plan":"Partial","type":"UI","scen":"Bấm nút Login hai lần liên tiếp vẫn vào đúng Dashboard, không sinh trang lỗi","bug":false,"a":true},{"id":"011","req":["10","11","12"],"p":"Critical","plan":"Yes","type":"UI","scen":"Kiểm tra trường bắt buộc trên biểu mẫu đăng nhập","bug":false,"a":true},{"id":"012","req":["13"],"p":"High","plan":"Yes","type":"UI","scen":"Email sai định dạng bị trình duyệt chặn ngay, biểu mẫu không gửi đi","bug":false,"a":true},{"id":"013","req":["14","15"],"p":"Critical","plan":"Yes","type":"UI","scen":"Sai thông tin đăng nhập trả về một thông báo chung, không tiết lộ email nào có thật","bug":false,"a":true},{"id":"014","req":["14"],"p":"Medium","plan":"Yes","type":"UI","scen":"Mật khẩu đúng nhưng sai kiểu chữ hoa/thường thì bị từ chối","bug":false,"a":true},{"id":"015","req":["41"],"p":"High","plan":"Yes","type":"UI","scen":"Đăng nhập sai nhiều lần liên tiếp không làm khoá tài khoản và không chặn theo IP","bug":false,"a":true},{"id":"016","req":["16"],"p":"High","plan":"Yes","type":"UI","scen":"Sau khi đăng nhập thất bại, ô Email phải còn giữ email vừa nhập","bug":true,"a":true},{"id":"017","req":["14"],"p":"Critical","plan":"Yes","type":"UI","scen":"Chuỗi tấn công nhập vào ô Password không vượt qua được xác thực và không được thực thi","bug":false,"a":true},{"id":"018","req":["14"],"p":"Medium","plan":"Yes","type":"UI","scen":"Mật khẩu chứa ký tự đa ngôn ngữ và emoji không làm hệ thống lỗi máy chủ","bug":false,"a":true},{"id":"019","req":["43","15"],"p":"High","plan":"Yes","type":"UI","scen":"Tài khoản khách hàng hợp lệ bị từ chối ở khu quản trị mà không lộ ra rằng email đó có tài khoản","bug":false,"a":true},{"id":"020","req":["43"],"p":"High","plan":"Yes","type":"UI","scen":"Đang có phiên cổng khách hàng hợp lệ vẫn không mở được URL nội bộ khu quản trị","bug":false,"a":true},{"id":"021","req":["17"],"p":"Critical","plan":"Yes","type":"UI","scen":"Mở thẳng URL nội bộ khi chưa đăng nhập thì bị đưa về trang đăng nhập","bug":false,"a":false},{"id":"022","req":["18"],"p":"Medium","plan":"Yes","type":"UI","scen":"Bị chuyển về trang đăng nhập thì không giữ lại URL đích ban đầu","bug":false,"a":false},{"id":"023","req":["19","20"],"p":"Medium","plan":"Yes","type":"UI","scen":"Đang có phiên thì mở trang đăng nhập hoặc Quên mật khẩu đều bị đưa về Dashboard","bug":false,"a":false},{"id":"024","req":["21"],"p":"High","plan":"Partial","type":"UI","scen":"Biểu mẫu đăng nhập mang mã chống CSRF đúng hình thái và gửi kèm khi submit","bug":false,"a":false},{"id":"025","req":["22"],"p":"Critical","plan":"Yes","type":"UI","scen":"Gửi biểu mẫu với mã CSRF không hợp lệ thì bị chặn, không xử lý đăng nhập","bug":false,"a":false},{"id":"026","req":["42"],"p":"High","plan":"No","type":"N/A","scen":"Phiên đăng nhập hết hạn sau 1 giờ không thao tác","bug":false,"a":false},{"id":"051","req":["42"],"p":"High","plan":"No","type":"N/A","scen":"Đang thao tác thì phiên được gia hạn — không bị đăng xuất dù đã quá 1 giờ kể từ lúc đăng nhập","bug":false,"a":false},{"id":"027","req":["23","24"],"p":"High","plan":"Yes","type":"UI","scen":"Trang Quên mật khẩu mở đúng, đủ thành phần và không có lối quay lại đăng nhập","bug":false,"a":false},{"id":"028","req":["25"],"p":"High","plan":"Yes","type":"UI","scen":"Bỏ trống email rồi bấm Confirm phải báo thiếu trường bắt buộc","bug":true,"a":false},{"id":"029","req":["26"],"p":"High","plan":"Yes","type":"UI","scen":"Nhập email không tồn tại trong hệ thống thì báo không tìm thấy","bug":false,"a":false},{"id":"030","req":["26"],"p":"Medium","plan":"Yes","type":"UI","scen":"Email sai định dạng ở trang Quên mật khẩu bị trình duyệt chặn","bug":false,"a":false},{"id":"031","req":["28"],"p":"Medium","plan":"Yes","type":"API","scen":"Mở liên kết đặt lại mật khẩu không hợp lệ thì máy chủ trả lỗi 500 với thân rỗng","bug":false,"a":false},{"id":"032","req":["29"],"p":"Critical","plan":"Yes","type":"UI","scen":"Ở viewport desktop chỉ có một lối đăng xuất dùng được — trong menu ảnh đại diện","bug":false,"a":false},{"id":"033","req":["29"],"p":"Medium","plan":"Yes","type":"UI","scen":"Ở viewport mobile đăng xuất được qua menu điều hướng thu gọn","bug":false,"a":false},{"id":"034","req":["30"],"p":"Medium","plan":"Yes","type":"UI","scen":"Đăng xuất trong lúc còn bộ đếm giờ công việc đang chạy thì phải xác nhận trước","bug":false,"a":false},{"id":"035","req":["31"],"p":"High","plan":"Yes","type":"UI","scen":"Không có bộ đếm giờ nào chạy thì bấm Logout đi thẳng, không hỏi lại","bug":false,"a":false},{"id":"036","req":["32","33"],"p":"Critical","plan":"Yes","type":"UI","scen":"Đăng xuất kết thúc phiên và URL nội bộ không dùng lại được, kể cả bằng nút Back","bug":false,"a":false},{"id":"037","req":["39"],"p":"High","plan":"Partial","type":"UI","scen":"Cookie ghi nhớ còn lại sau khi đăng xuất chủ động không tự đăng nhập lại","bug":false,"a":false},{"id":"038","req":["02"],"p":"Medium","plan":"Yes","type":"UI","scen":"Điều hướng và gửi biểu mẫu đăng nhập hoàn toàn bằng bàn phím, có viền tiêu điểm rõ ràng","bug":false,"a":false},{"id":"039","req":["44"],"p":"High","plan":"Yes","type":"UI","scen":"Truy cập trang đăng nhập qua HTTP thuần phải bị ép chuyển hướng sang HTTPS","bug":true,"a":false},{"id":"040","req":["14"],"p":"Medium","plan":"Partial","type":"UI","scen":"Mất kết nối mạng giữa lúc gửi biểu mẫu thì không tạo phiên","bug":false,"a":false},{"id":"041","req":["06"],"p":"Low","plan":"Partial","type":"UI","scen":"Đăng nhập trên đường truyền chậm vẫn hoàn tất và vào đúng Dashboard","bug":false,"a":false},{"id":"042","req":["02"],"p":"Medium","plan":"Yes","type":"UI","scen":"Ô Mật khẩu che ký tự, dán được, và biểu mẫu không có nút hiện/ẩn mật khẩu","bug":false,"a":false},{"id":"043","req":["02","10"],"p":"Medium","plan":"Yes","type":"UI","scen":"Nút Login luôn bấm được, không tự khoá theo trạng thái biểu mẫu","bug":false,"a":false},{"id":"044","req":["02"],"p":"Low","plan":"No","type":"N/A","scen":"Biểu mẫu không chặn tính năng tự điền và đề nghị lưu mật khẩu của trình duyệt","bug":false,"a":false},{"id":"045","req":["13","14"],"p":"Medium","plan":"Yes","type":"UI","scen":"Email có phần trước dấu @ dài tới đúng mốc 64 ký tự vẫn được coi là đúng định dạng","bug":false,"a":false},{"id":"046","req":["13"],"p":"Medium","plan":"Yes","type":"UI","scen":"Email có phần trước dấu @ vượt mốc 64 ký tự bị máy chủ chặn ở bước kiểm tra định dạng","bug":false,"a":false},{"id":"047","req":["14"],"p":"Medium","plan":"Yes","type":"UI","scen":"Mật khẩu rất dài không làm hệ thống lỗi và vẫn trả đúng thông báo xác thực","bug":false,"a":false},{"id":"048","req":["02"],"p":"Low","plan":"Yes","type":"UI","scen":"Ô Email không tự cắt bớt ký tự khi dán chuỗi dài vào","bug":false,"a":false},{"id":"049","req":["02"],"p":"Medium","plan":"Yes","type":"UI","scen":"Trang đăng nhập giữ đúng bố cục ở mọi kích thước màn hình đã chốt","bug":false,"a":false},{"id":"050","req":["02","06","14"],"p":"Medium","plan":"Yes","type":"UI","scen":"Luồng đăng nhập chạy được trên các trình duyệt đã cam kết hỗ trợ","bug":false,"a":false}]};
+const MODULES = [["LOGIN",1],["CUST",1],["PRJ",1],["CONT",0],["LEAD",0],["TASK",0],["EST",0],["PROP",0],["INV",0],["PAY",0],["CN",0],["SUB",0],["CTR",0],["EXP",0],["ITEM",0],["TICK",0],["ESTREQ",0],["KB",0],["REP",0],["DASH",0],["TODO",0],["REM",0],["PROF",0]];
+const STATUS = { full: "Mọi TC đã có script", part: "Một phần có script", manual: "Chỉ chạy tay", none: "Chưa có TC", out: "Ngoài phạm vi (PO)" };
+const ORDER = ["021","036","032","025","027","029","028","035","039","024","037","026","051","023","022","031","030","033","034","045","046","047","043","042","038","049","050","040","048","041","044"];
+const NOTES = {
+  "021": "Dễ làm, đưa REQ-17 sang đủ script", "036": "Một TC mở 2 REQ", "032": "Lối đăng xuất ở desktop",
+  "025": "Sửa trường CSRF ẩn trước khi gửi, kỳ vọng “419 Page Expired!”", "027": "Một TC mở 2 REQ", "029": "Quên mật khẩu, email không tồn tại",
+  "028": "Dự kiến FAIL, gắn @known-bug như TC_016", "035": "Logout không hỏi lại khi không có timer", "039": "Dự kiến FAIL, HTTP chưa bị ép sang HTTPS",
+  "024": "Hình thái mã CSRF và có trong body POST", "037": "Cookie ghi nhớ sau khi đăng xuất", "026": "Phải chờ 1 giờ, giữ chạy tay",
+  "051": "Gia hạn phiên quá 1 giờ, giữ chạy tay", "023": "Một TC mở 2 REQ", "022": "", "031": "Kiểu API, dùng request của Playwright",
+  "030": "REQ ID có thể lệch, xem điểm cần xác nhận số 2", "033": "Viewport mobile", "034": "Phải tạo timer trên môi trường dùng chung và dọn sau khi chạy",
+  "045": "Biên 64 ký tự", "046": "Vượt biên 64 ký tự", "047": "", "043": "", "042": "", "038": "Bàn phím và viền tiêu điểm",
+  "049": "Bố cục nhiều kích thước màn hình", "050": "Có thể đã phủ một phần nhờ chạy đa trình duyệt", "040": "Mất mạng giữa lúc gửi, dùng setOffline()",
+  "048": "", "041": "Giả lập đường truyền chậm bằng route", "044": "Tự điền của trình duyệt, giữ chạy tay"
+};
+const CHECKS = [
+  { refs: "TC_050 · REQ-LOGIN-02, 06, 14", t: "TC_050 kiểm luồng đăng nhập trên các trình duyệt cam kết hỗ trợ. Framework đã chạy TC 002, 005, 013 trên Chrome, Edge và Firefox, nên về nội dung TC_050 có thể coi là đã phủ một phần. Chưa script nào mang mã TC_050 nên báo cáo chưa tính.", a: "<b>Cần quyết:</b> dùng kết quả chạy đa trình duyệt làm bằng chứng cho TC_050, hay viết test riêng gắn mã TC_050." },
+  { refs: "TC_030 · REQ-LOGIN-26", t: "TC_030 kiểm email sai định dạng bị trình duyệt chặn ở trang Quên mật khẩu, nhưng đang gắn REQ-LOGIN-26 (email không tồn tại thì báo “Email not found”). Nội dung khớp với REQ-LOGIN-23 hơn.", a: "<b>Đề xuất:</b> xem lại cột REQ ID của TC_030. Báo cáo này không tự sửa file TC." },
+  { refs: "TC_014 · REQ-LOGIN-14", t: "Đã có script nhưng cần một tài khoản staff riêng có mật khẩu chứa chữ cái. Tài khoản đang khai báo không đăng nhập được và mật khẩu toàn số, nên test dừng ở bước kiểm tiền đề. Trên giấy là đã automate, thực tế chưa xanh lần nào.", a: "<b>Cần làm:</b> tạo staff test có mật khẩu chứa chữ cái và cập nhật cấu hình môi trường." },
+  { refs: "TC_019 · REQ-LOGIN-43", t: "Bước 2 của TC kỳ vọng tab trình duyệt ghi “HKD Anh Tester”, là tên công ty của tài khoản lúc khảo sát. Script đã chấm theo lời chào trang chủ, nhưng file TC vẫn giữ kỳ vọng cũ nên người chạy tay sẽ chấm FAIL nhầm.", a: "<b>Đề xuất:</b> đổi kỳ vọng bước 2 thành “dừng ở trang chủ, thấy lời chào đầu trang”." },
+  { refs: "TC_008, 009, 010 · REQ-LOGIN-06, 08, 09", t: "File TC ghi Automation là Partial, nhưng script đã kiểm cả phần kỹ thuật (cookie autologin, bấm Login hai lần). Báo cáo tính 3 TC này là đã có script đầy đủ.", a: "<b>Đề xuất:</b> đổi cột Automation của 3 TC sang Yes cho khớp thực tế." }
+];
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reqs = DATA.reqs, tcs = DATA.tcs;
+const tcById = Object.fromEntries(tcs.map(t => [t.id, t]));
+const inScope = reqs.filter(r => r.s !== "out");
+const cnt = (s) => reqs.filter(r => r.s === s).length;
+const autoN = tcs.filter(t => t.a).length;
+const autoable = tcs.filter(t => t.plan !== "No").length;
+
+$("#scopeBar").innerHTML = MODULES.map(([m, d]) => `<span class="${d ? "done" : ""}" title="${m}"></span>`).join("");
+$("#scopeChips").innerHTML = `<span class="eyebrow" style="color:inherit">Chưa khảo sát:</span>` + MODULES.filter(m => !m[1]).map(([m]) => `<span class="chip">${m}</span>`).join("");
+
+const pct = (a, b) => (a / b * 100).toFixed(1).replace(".", ",").replace(",0", "");
+const seg = (parts) => `<div class="meter">${parts.map(([n, c]) => `<i style="width:${n / parts.reduce((s, p) => s + p[0], 0) * 100}%;background:var(${c})"></i>`).join("")}</div>`;
+$("#kpis").innerHTML = [
+  { num: `${inScope.filter(r => r.tcs.length).length}<small>/${inScope.length}</small>`, lab: "REQ trong phạm vi có test case", sub: `100%. 4 REQ (27, 34, 35, 40) được PO loại khỏi phạm vi.`, m: seg([[40, "--ok"]]) },
+  { num: `${autoN}<small>/${tcs.length}</small>`, lab: "Test case đã có script", sub: `${pct(autoN, tcs.length)}%. Tính trên ${autoable} TC tự động hoá được: ${pct(autoN, autoable)}%.`, m: seg([[autoN, "--accent"], [tcs.length - autoN, "--sunk"]]) },
+  { num: `${cnt("full")}<small>/${inScope.length}</small>`, lab: "REQ có script cho mọi TC", sub: `${cnt("part")} REQ có script một phần · ${cnt("manual")} REQ chỉ chạy tay.`, m: seg([[cnt("full"), "--ok"], [cnt("part"), "--part"], [cnt("manual"), "--manual"]]) },
+  { num: `0`, lab: "Test mồ côi · TC đã gỡ", sub: "Cả 20 test đều gắn mã TC. Không có TC nào mang tag @Deprecated.", m: seg([[1, "--ok"]]) }
+].map(k => `<div class="kpi"><span class="eyebrow">${k.lab}</span><span class="num">${k.num}</span>${k.m}<span class="sub">${k.sub}</span></div>`).join("");
+
+$("#reqStrip").innerHTML = reqs.map(r => `<button type="button" class="cell s-${r.s}${r.bug ? " bug" : ""}" data-req="${r.id}" title="REQ-LOGIN-${r.id} · ${esc(r.name)} · ${STATUS[r.s]}${r.bug ? " · lỗi đã xác nhận" : ""}">${r.id}</button>`).join("");
+$("#tcStrip").innerHTML = tcs.slice().sort((a, b) => a.id.localeCompare(b.id)).map(t => `<span class="cell ${t.a ? "tc-a" : t.plan === "No" ? "tc-no" : "tc-m"}${t.bug ? " bug" : ""}" style="cursor:default" title="CRM_LOGIN_TC_${t.id} · ${t.p} · ${esc(t.scen)}">${t.id}</span>`).join("");
+
+const PRIOS = ["Critical", "High", "Medium", "Low"];
+const maxT = Math.max(...PRIOS.map(p => tcs.filter(t => t.p === p).length));
+const scaleMax = Math.ceil(maxT / 5) * 5;
+$("#prio").innerHTML = PRIOS.map(p => {
+  const all = tcs.filter(t => t.p === p).length, a = tcs.filter(t => t.p === p && t.a).length;
+  return `<div class="prow"><span class="lab"><i class="prio-mark pr-${p}"></i>${p}</span><div class="ptrack" role="img" aria-label="${p}: ${a} trên ${all} TC có script"><span class="tot" style="width:${all / scaleMax * 100}%"></span><span class="done" style="width:${a / scaleMax * 100}%"></span></div><span class="val">${a}/${all}</span></div>`;
+}).join("") + `<div class="axis" aria-hidden="true"><span></span><div>${[0, 5, 10, 15, 20].filter(v => v <= scaleMax).map(v => `<span style="left:${v / scaleMax * 100}%">${v}</span>`).join("")}</div><span></span></div>`;
+
+let filter = "all";
+const FILTERS = [["all", "Tất cả", reqs.length], ["full", STATUS.full, cnt("full")], ["part", STATUS.part, cnt("part")], ["manual", STATUS.manual, cnt("manual")], ["out", STATUS.out, cnt("out")]];
+$("#filters").insertAdjacentHTML("afterbegin", FILTERS.map(([k, l, n]) => `<button type="button" class="filter" data-f="${k}" aria-pressed="${k === "all"}">${k !== "all" ? `<i class="sw" style="background:var(--${k === "full" ? "ok" : k})"></i>` : ""}${l}<span class="c">${n}</span></button>`).join(""));
+
+function renderMatrix(hl) {
+  const q = $("#q").value.trim().toLowerCase().replace(/^req-login-/, "").replace(/^crm_login_tc_|^tc_?/, "");
+  const rows = reqs.filter(r => (filter === "all" || r.s === filter) && (!q || r.id === q.padStart(2, "0") || r.tcs.includes(q.padStart(3, "0")) || r.name.toLowerCase().includes(q)));
+  $("#matrix").innerHTML = rows.length ? rows.map(r => `<tr${hl === r.id ? ' class="hl"' : ""}>
+    <td class="id">REQ-LOGIN-${r.id}</td>
+    <td>${esc(r.name)}${r.bug ? '<span class="tag">lỗi đã xác nhận</span>' : ""}${r.amb ? `<span class="tag soft">${r.amb}</span>` : ""}</td>
+    <td><div class="tcs">${r.tcs.length ? r.tcs.map(t => `<span class="tc${tcById[t].a ? " a" : ""}" title="${esc(tcById[t].scen)}">${t}</span>`).join("") : '<span class="muted">—</span>'}</div></td>
+    <td class="num">${r.n ? `${r.n}/${r.tcs.length}` : '<span class="muted">—</span>'}</td>
+    <td><span class="pill p-${r.s}">${STATUS[r.s]}</span></td></tr>`).join("") : `<tr><td colspan="5" class="empty">Không có REQ nào khớp bộ lọc. Bấm “Tất cả” hoặc xoá ô tìm kiếm.</td></tr>`;
+}
+$("#filters").addEventListener("click", e => {
+  const b = e.target.closest(".filter"); if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll(".filter").forEach(x => x.setAttribute("aria-pressed", x === b));
+  renderMatrix();
+});
+$("#q").addEventListener("input", () => renderMatrix());
+$("#reqStrip").addEventListener("click", e => {
+  const c = e.target.closest(".cell"); if (!c) return;
+  filter = "all"; document.querySelectorAll(".filter").forEach(x => x.setAttribute("aria-pressed", x.dataset.f === "all"));
+  $("#q").value = "REQ-LOGIN-" + c.dataset.req;
+  renderMatrix(c.dataset.req);
+  $("#h-matrix").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+});
+renderMatrix();
+
+$("#backlog").innerHTML = ORDER.map((id, i) => {
+  const t = tcById[id];
+  return `<tr><td class="num">${i + 1}</td><td class="id">TC_${id}</td><td>${esc(t.scen)}${t.bug ? '<span class="tag">dự kiến FAIL</span>' : ""}${t.plan === "No" ? '<span class="tag soft">giữ chạy tay</span>' : ""}</td><td class="num">${t.req.join(", ")}</td><td style="white-space:nowrap"><i class="prio-mark pr-${t.p}"></i>${t.p}</td><td class="muted" style="font-size:13.5px">${esc(NOTES[id] || "")}</td></tr>`;
+}).join("");
+
+$("#checks").innerHTML = CHECKS.map((c, i) => `<div class="check"><span class="n">${i + 1}</span><span class="refs">${c.refs}</span><p>${c.t}</p><p class="act">${c.a}</p></div>`).join("");
+</script>

@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "user-profile.schema.json",
+  "title": "GET /api/me — 200",
+  "type": "object",
+  "required": ["id", "name", "email", "avatarUrl", "phone", "address"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string" },
+    "email": { "type": "string", "format": "email" },
+    "avatarUrl": { "type": "string" },
+    "phone": { "type": "string" },
+    "address": { "type": "string" },
+    "config": {}
+  }
+}

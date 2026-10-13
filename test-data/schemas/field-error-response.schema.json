@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "field-error-response.schema.json",
+  "title": "Response lỗi theo field — 400 / 404 / 422 của register · login (spec bắt buộc cả msg lẫn fields)",
+  "type": "object",
+  "required": ["msg", "fields"],
+  "properties": {
+    "msg": { "type": "string", "minLength": 1 },
+    "fields": {
+      "description": "{ <tên field>: [<thông báo>] }",
+      "type": "object",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+    }
+  }
+}
