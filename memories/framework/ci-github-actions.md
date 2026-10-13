@@ -23,6 +23,10 @@ Workflow đã khai thêm 4 secret tuỳ chọn `CRM_CUSTOMER_*` · `CRM_TC014_*`
 ## Lịch chạy hằng ngày 21:37 giờ VN (13-10-2026)
 User yêu cầu. GitHub: `schedule` cron `37 14 * * *` (UTC = giờ VN − 7), lần chạy theo lịch không có `inputs` → tự bỏ `@known-bug`. GitLab: lịch **không** nằm trong YAML — user tự tạo ở Build → Pipeline schedules (cron `37 21 * * *`, timezone `Asia/Ho_Chi_Minh`). Đổi giờ → sửa cả cron GitHub lẫn README mục 7.
 
+## Allure report public trên Pages (13-10-2026)
+User yêu cầu xem report trực tiếp trên GitHub → https://anhtester.github.io/playwright-typescript-framework-ai/ (Pages nguồn "GitHub Actions", job `deploy-report`, chỉ `main`, chạy cả khi FAIL; history lấy bằng `curl` từ bản đang public). GitLab: job `pages`.
+**How to apply:** chỉ public `reports/allure-report` — đã quét artifact CI: không có mật khẩu, nhưng **email đăng nhập hiện trong tên step**. Không bao giờ đưa `reports/html`/trace lên Pages. Thêm attachment mới → quét lại trước khi push.
+
 ## CI bỏ qua `@known-bug` (13-10-2026)
 User chốt: CI chạy `--grep-invert @known-bug`; bấm tay workflow + tick `include_known_bugs` để chạy lại nhóm đó.
 

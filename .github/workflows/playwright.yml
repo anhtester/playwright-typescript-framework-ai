@@ -35,7 +35,12 @@ jobs:
     name: UI + API tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      report-ready: ${{ steps.pages-artifact.outcome == 'success' }}
     env:
+      # Allure report public lên GitHub Pages — chỉ lượt chạy trên main (push · schedule · bấm tay), PR không public
+      PUBLISH_REPORT: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+      PAGES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
       # URL không bí mật → Repository variables (có giá trị mặc định). Tài khoản → Repository secrets
       BASE_URL: ${{ vars.BASE_URL || 'https://book.anhtester.com' }}
       API_URL: ${{ vars.API_URL || 'https://book.anhtester.com' }}
@@ -102,11 +107,28 @@ jobs:
           [ "$SKIP_KNOWN_BUGS" = "true" ] && ARGS+=(--grep-invert @known-bug)
           node scripts/run-browsers.mjs --with-api "${ARGS[@]}"
 
+      # Lấy history của report đang public → biểu đồ trend nối tiếp qua các lần chạy (lần đầu chưa có thì bỏ qua)
+      - name: Lấy history Allure từ GitHub Pages
+        if: always() && env.PUBLISH_REPORT == 'true'
+        run: |
+          mkdir -p reports/allure-report/history
+          for f in history.json history-trend.json duration-trend.json categories-trend.json retry-trend.json; do
+            curl -sfL "$PAGES_URL/history/$f" -o "reports/allure-report/history/$f" || rm -f "reports/allure-report/history/$f"
+          done
+
       - name: Sinh Allure report (nhiều file + 1 file)
         if: always()
         run: |
           npm run report:generate
           npm run report:single
+
+      # CHỈ public Allure report — đã che mật khẩu (README mục 4). reports/html + trace có nguyên mật khẩu, KHÔNG đưa lên Pages
+      - name: Đóng gói Allure report cho GitHub Pages
+        id: pages-artifact
+        if: always() && env.PUBLISH_REPORT == 'true' && hashFiles('reports/allure-report/index.html') != ''
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: reports/allure-report
 
       - name: Upload reports/
         if: always()
@@ -115,3 +137,19 @@ jobs:
           name: test-reports
           path: reports/
           retention-days: 14
+
+  # Public Allure report: https://<owner>.github.io/<repo>/ — chạy cả khi test FAIL (report đỏ cũng cần xem)
+  deploy-report:
+    name: Public Allure report (GitHub Pages)
+    needs: test
+    if: always() && needs.test.outputs.report-ready == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

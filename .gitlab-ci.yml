@@ -93,3 +93,20 @@ playwright:
     access: developer
     # Hiện link "Test reports" ngay trong merge request
     expose_as: 'Test reports'
+
+# Public Allure report lên GitLab Pages — chỉ nhánh mặc định, chạy cả khi test FAIL.
+# CHỈ đưa reports/allure-report (đã che mật khẩu) — reports/html + trace có nguyên mật khẩu, không public
+pages:
+  stage: deploy
+  image: alpine:3.20
+  needs:
+    - job: playwright
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+  script:
+    - test -f reports/allure-report/index.html
+    - mv reports/allure-report public
+  artifacts:
+    paths: [public]

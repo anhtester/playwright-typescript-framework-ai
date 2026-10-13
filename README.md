@@ -193,6 +193,8 @@ test(
 
 Workflow `.github/workflows/playwright.yml` chạy khi `push` lên `main`, mở `pull_request`, hoặc bấm tay (`workflow_dispatch`, có ô lọc tag). Kết quả — kể cả khi fail — nằm trong artifact **`test-reports`** (toàn bộ `reports/`).
 
+**Allure report public:** https://anhtester.github.io/playwright-typescript-framework-ai/ — job `deploy-report` đưa `reports/allure-report` lên GitHub Pages sau mỗi lượt chạy trên `main` (push · lịch · bấm tay; PR không public), kể cả khi test FAIL. Biểu đồ trend nối tiếp nhờ lấy `history/` từ bản đang public. **Chỉ** Allure được public vì đã che mật khẩu (mục 4) — `reports/html` + trace vẫn chỉ nằm trong artifact. Email đăng nhập vẫn hiện trong tên step.
+
 Cấu hình một lần trong **Settings → Secrets and variables → Actions**:
 
 | Loại | Tên | Giá trị |
@@ -212,7 +214,7 @@ CI chạy `run-browsers.mjs --with-api` (API → các trình duyệt trong `env.
 
 ### GitLab CI
 
-File `.gitlab-ci.yml` ở gốc repo — **cùng hành vi** với workflow GitHub: chạy khi push lên nhánh mặc định, mở merge request, hoặc bấm tay; `BROWSERS: chrome`; bỏ qua `@known-bug`; Allure sinh cả khi FAIL; artifact `test-reports` (toàn bộ `reports/`) giữ 14 ngày, có link ngay trong merge request.
+File `.gitlab-ci.yml` ở gốc repo — **cùng hành vi** với workflow GitHub: chạy khi push lên nhánh mặc định, mở merge request, hoặc bấm tay; `BROWSERS: chrome`; bỏ qua `@known-bug`; Allure sinh cả khi FAIL; artifact `test-reports` (toàn bộ `reports/`) giữ 14 ngày, có link ngay trong merge request. Job `pages` public Allure report lên GitLab Pages (nhánh mặc định).
 
 | Việc | Ở đâu |
 |---|---|
