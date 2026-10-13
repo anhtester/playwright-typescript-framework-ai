@@ -20,6 +20,9 @@ Chi tiết ở `README.md` mục 7 và `.github/workflows/playwright.yml`.
 User chốt: CI chạy trước trên Chrome, tắt Edge/Firefox. Điều khiển bằng `env.BROWSERS` đầu workflow (`chrome` → `chrome,edge,firefox` để bật lại); bước cài trình duyệt và Allure "Browsers" (qua `RUN_BROWSERS` của `run-browsers.mjs`) tự theo. Local cũng chỉ Chrome: `BROWSERS=chrome` trong `.env` — `run-browsers.mjs` tự nạp `.env` (không ghi đè biến CI đã đặt), `--browsers=` ghi đè cho 1 lần chạy. Chi tiết [[chay-test-da-trinh-duyet]].
 Workflow đã khai thêm 4 secret tuỳ chọn `CRM_CUSTOMER_*` · `CRM_TC014_*` (thiếu thì TC_019/020/014 SKIP) — tổng 12 secret.
 
+## Lịch chạy hằng ngày 21:37 giờ VN (13-10-2026)
+User yêu cầu. GitHub: `schedule` cron `37 14 * * *` (UTC = giờ VN − 7), lần chạy theo lịch không có `inputs` → tự bỏ `@known-bug`. GitLab: lịch **không** nằm trong YAML — user tự tạo ở Build → Pipeline schedules (cron `37 21 * * *`, timezone `Asia/Ho_Chi_Minh`). Đổi giờ → sửa cả cron GitHub lẫn README mục 7.
+
 ## CI bỏ qua `@known-bug` (13-10-2026)
 User chốt: CI chạy `--grep-invert @known-bug`; bấm tay workflow + tick `include_known_bugs` để chạy lại nhóm đó.
 

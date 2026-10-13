@@ -19,6 +19,8 @@ workflow:
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
     # Push lên nhánh mặc định (main) · bấm tay Build → Pipelines → Run pipeline
+    # Lịch chạy hằng ngày KHÔNG khai trong file — tạo ở Build → Pipeline schedules: cron `37 21 * * *`,
+    # timezone Asia/Ho_Chi_Minh (21:37 giờ VN), nhánh main → khớp luôn rule dưới đây
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "web"
 
