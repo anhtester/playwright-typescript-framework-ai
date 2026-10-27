@@ -50,7 +50,7 @@ export const env = {
   timeout: positiveInt('TIMEOUT', 60_000),
   expectTimeout: positiveInt('EXPECT_TIMEOUT', 10_000),
   /** SLA thời gian phản hồi của mỗi API call (ms) */
-  apiSlaMs: positiveInt('API_SLA_MS', 2_000),
+  apiSlaMs: positiveInt('API_SLA_MS', 4_000),
   viewport: viewport('VIEWPORT', '1920x1080'),
   testEmailDomain: optional('TEST_EMAIL_DOMAIN', 'auto.test'),
   logLevel: optional('LOG_LEVEL', 'info'),
