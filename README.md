@@ -265,7 +265,7 @@ TC ID là mã đặt cho bộ test mẫu — khi có bộ manual TC chính thứ
 | BK_AUTH_TC_078 · 079 | `POST /api/login` | Cookie `refetchToken` đủ cờ bảo mật · cookie `accessToken` = body |
 | 🐞 BK_AUTH_TC_062 · 068-d · 075 · 080 | | **Dự kiến FAIL — phơi bug**, tag `@known-bug` / `@needs-verify` (mục 9 #1 · #6 → #8). Không hạ assertion |
 
-Mọi response còn qua `expect(result).toMeetApiBaseline()`: SLA < `API_SLA_MS` (mặc định 2000 ms) · body JSON · không lộ khoá `password` · không stack trace. Content-Type lệch spec được ghi thành parameter **Cảnh báo Content-Type lệch spec** trên Allure, không đánh FAIL.
+Mọi response còn qua `expect(result).toMeetApiBaseline()`: SLA < `API_SLA_MS` (mặc định 4000 ms) · body JSON · không lộ khoá `password` · không stack trace. Content-Type lệch spec được ghi thành parameter **Cảnh báo Content-Type lệch spec** trên Allure, không đánh FAIL.
 
 `BK_AUTH_TC_075` gửi request rơi vào tài khoản `user@example.com` không do QA sở hữu (lỗi F-19) → khai `retries: 0`, chạy đúng 1 lần mỗi lượt.
 

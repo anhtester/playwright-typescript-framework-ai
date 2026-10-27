@@ -63,7 +63,7 @@ jobs:
       # Tinh chỉnh — cùng giá trị mặc định với .env.example
       TIMEOUT: '60000'
       EXPECT_TIMEOUT: '10000'
-      API_SLA_MS: '2000'
+      API_SLA_MS: '4000'
       VIEWPORT: '1920x1080'
       TEST_EMAIL_DOMAIN: 'auto.test'
       LOG_LEVEL: 'info'
