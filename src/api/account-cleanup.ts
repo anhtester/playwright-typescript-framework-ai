@@ -8,9 +8,10 @@ const logger = createLogger('cleanup');
 
 /**
  * Đăng nhập bằng bộ track trả các mã này → không có tài khoản nào mang đúng email + mật khẩu đó:
- * 404 chưa từng tạo / đã tự xoá · 400 email thuộc tài khoản khác mật khẩu · 422 email sai định dạng (không thể tồn tại)
+ * 401 chưa từng tạo / đã tự xoá / email thuộc tài khoản khác mật khẩu (server gộp chung một lỗi "Invalid email or password.")
+ * · 422 email sai định dạng (không thể tồn tại)
  */
-const NOT_OWNED_STATUSES = new Set([400, 404, 422]);
+const NOT_OWNED_STATUSES = new Set([401, 422]);
 
 /**
  * Theo dõi tài khoản do test tạo ra (qua API hoặc qua form UI) và xoá ở teardown.
@@ -57,9 +58,9 @@ export class AccountCleanup {
     if (deleted.status !== 200) {
       throw new Error(`DELETE /api/user/${profile.body.id} trả HTTP ${deleted.status}`);
     }
-    // Xác nhận đã xoá thật: đăng nhập lại phải ra 404 — xoá không có hiệu lực thì báo ngay, không để sót
+    // Xác nhận đã xoá thật: đăng nhập lại phải ra 401 — xoá không có hiệu lực thì báo ngay, không để sót
     const relogin = await this.authApi.login(account);
-    if (relogin.status !== 404) {
+    if (relogin.status !== 401) {
       throw new Error(`Đã gọi xoá nhưng đăng nhập lại vẫn trả HTTP ${relogin.status}`);
     }
     logger.info('Đã xoá tài khoản test', { email: account.email });

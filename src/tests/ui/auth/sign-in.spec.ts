@@ -3,6 +3,9 @@ import { tcMeta } from '../../../utils/allure-meta';
 import { env } from '../../../utils/env.config';
 import { TestData } from '../../../utils/test-data';
 
+/** Server trả cùng một thông báo cho email chưa đăng ký và sai mật khẩu */
+const INVALID_CREDENTIALS_MESSAGE = 'Invalid email or password.';
+
 test.describe('Đăng nhập (UI)', () => {
   test(
     'Đăng nhập thành công bằng tài khoản demo hợp lệ',
@@ -48,7 +51,7 @@ test.describe('Đăng nhập (UI)', () => {
         feature: 'Xác thực',
         story: 'Đăng nhập',
         description:
-          'Kiểm tra đăng nhập bằng email chưa từng đăng ký thì hệ thống báo "User not found." và vẫn ở trang Sign in.',
+          'Kiểm tra đăng nhập bằng email chưa từng đăng ký thì hệ thống báo "Invalid email or password." (giống hệt sai mật khẩu — không lộ email nào đã đăng ký) và vẫn ở trang Sign in.',
       }),
     },
     async ({ page, signInPage }) => {
@@ -62,8 +65,8 @@ test.describe('Đăng nhập (UI)', () => {
         await signInPage.login(unknownEmail, TestData.password());
       });
 
-      await test.step('Assert: Hệ thống báo "User not found." và vẫn ở trang Sign in', async () => {
-        await expect(signInPage.toastWithText('User not found.'), 'Phải hiện toast "User not found."').toBeVisible();
+      await test.step('Assert: Hệ thống báo "Invalid email or password." và vẫn ở trang Sign in', async () => {
+        await expect(signInPage.toastWithText(INVALID_CREDENTIALS_MESSAGE), `Phải hiện toast "${INVALID_CREDENTIALS_MESSAGE}"`).toBeVisible();
         await expect(page, 'Không được rời trang Sign in khi đăng nhập thất bại').toHaveURL(signInPage.url);
       });
     },
@@ -79,7 +82,7 @@ test.describe('Đăng nhập (UI)', () => {
         feature: 'Xác thực',
         story: 'Đăng nhập',
         description:
-          'Kiểm tra đăng nhập bằng email đã đăng ký nhưng sai mật khẩu thì hệ thống báo "Invalid password." '
+          'Kiểm tra đăng nhập bằng email đã đăng ký nhưng sai mật khẩu thì hệ thống báo "Invalid email or password." '
           + 'và vẫn ở trang Sign in. Dùng tài khoản riêng của test để không làm ảnh hưởng tài khoản demo dùng chung.',
       }),
     },
@@ -92,8 +95,8 @@ test.describe('Đăng nhập (UI)', () => {
         await signInPage.login(registeredUser.email, `${registeredUser.password}_sai`);
       });
 
-      await test.step('Assert: Hệ thống báo "Invalid password." và vẫn ở trang Sign in', async () => {
-        await expect(signInPage.toastWithText('Invalid password.'), 'Phải hiện toast "Invalid password."').toBeVisible();
+      await test.step('Assert: Hệ thống báo "Invalid email or password." và vẫn ở trang Sign in', async () => {
+        await expect(signInPage.toastWithText(INVALID_CREDENTIALS_MESSAGE), `Phải hiện toast "${INVALID_CREDENTIALS_MESSAGE}"`).toBeVisible();
         await expect(page, 'Không được rời trang Sign in khi sai mật khẩu').toHaveURL(signInPage.url);
       });
     },

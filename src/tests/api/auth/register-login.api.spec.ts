@@ -51,8 +51,12 @@ const SOURCE = 'registerLoginApi';
 const LONG_TEXT = TestData.longText(10_000);
 const BASE_TAGS = ['@api', '@auth'];
 const DUPLICATE_EMAIL_BODY = { msg: 'Email already exists.', fields: { email: ['Email already exists.'] } };
-const INVALID_PASSWORD_BODY = { msg: 'Invalid password.', fields: { password: ['Invalid password, please try again.'] } };
-const USER_NOT_FOUND_BODY = { msg: 'User not found.', fields: { email: ['Email not found, please register.'] } };
+/** Đăng nhập sai — server trả CÙNG một lỗi cho sai mật khẩu và email không tồn tại (không lộ email nào đã đăng ký) */
+const INVALID_CREDENTIALS_MESSAGE = 'Invalid email or password.';
+const INVALID_CREDENTIALS_BODY = {
+  msg: INVALID_CREDENTIALS_MESSAGE,
+  fields: { email: [INVALID_CREDENTIALS_MESSAGE], password: [INVALID_CREDENTIALS_MESSAGE] },
+};
 const MISSING_PASSWORD_MESSAGE = "Expected property 'password' to be string but found: undefined";
 const INVALID_EMAIL_MESSAGE = "Property 'email' should be email";
 const MISSING_EMAIL_PATTERN = /Expected property 'email'/;
@@ -242,7 +246,7 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
           'critical',
           'Đăng ký',
           'Kiểm tra POST /api/register không có khoá password thì trả 422 "Invalid data." với fields.password báo thiếu field '
-            + 'và không tạo tài khoản (đăng nhập bằng email đó ra 404).',
+            + 'và không tạo tài khoản (đăng nhập bằng email đó ra 401).',
         ),
       },
       async ({ authApi, accountCleanup }) => {
@@ -266,7 +270,7 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
           expect(rejected.body.msg, 'Thông báo lỗi').toBe('Invalid data.');
           expect(rejected.body.fields?.password, 'fields.password phải báo thiếu field').toContain(MISSING_PASSWORD_MESSAGE);
           expect(rejected).toMeetApiBaseline();
-          expect(loginCheck.status, 'Không được tạo tài khoản — đăng nhập bằng email đó phải trả 404').toBe(404);
+          expect(loginCheck.status, 'Không được tạo tài khoản — đăng nhập bằng email đó phải trả 401').toBe(401);
         });
       },
     );
@@ -381,8 +385,8 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
             expect(duplicated).toMeetApiBaseline();
             expect(
               secondAccountLogin.status,
-              'Không được có tài khoản thứ hai — mật khẩu của lần đăng ký trùng phải bị từ chối (400)',
-            ).toBe(400);
+              'Không được có tài khoản thứ hai — mật khẩu của lần đăng ký trùng phải bị từ chối (401)',
+            ).toBe(401);
           });
         },
       );
@@ -644,7 +648,7 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
             'BK_AUTH_TC_073',
             'critical',
             'Đăng nhập',
-            `Kiểm tra POST /api/login bằng email của userA với mật khẩu ${variant.label} thì trả 400 đúng nguyên văn "Invalid password." `
+            `Kiểm tra POST /api/login bằng email của userA với mật khẩu ${variant.label} thì trả 401 đúng nguyên văn "Invalid email or password." `
               + 'và không có Set-Cookie.',
           ),
         },
@@ -665,9 +669,9 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
             login = await authApi.login<LoginFailure>({ email: userA.email, password });
           });
 
-          await test.step('Assert: Trả 400 "Invalid password." nguyên văn và không Set-Cookie', async () => {
-            expect(login.status, 'Sai mật khẩu phải trả HTTP 400').toBe(400);
-            expect(login.body, 'Body lỗi sai mật khẩu phải đúng nguyên văn').toEqual(INVALID_PASSWORD_BODY);
+          await test.step('Assert: Trả 401 "Invalid email or password." nguyên văn và không Set-Cookie', async () => {
+            expect(login.status, 'Sai mật khẩu phải trả HTTP 401').toBe(401);
+            expect(login.body, 'Body lỗi sai mật khẩu phải đúng nguyên văn').toEqual(INVALID_CREDENTIALS_BODY);
             expect(login.setCookies, 'Sai mật khẩu không được mở phiên — không Set-Cookie').toEqual([]);
             expect(login).toMeetApiBaseline();
           });
@@ -683,7 +687,7 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
           'BK_AUTH_TC_074',
           'critical',
           'Đăng nhập',
-          'Kiểm tra POST /api/login bằng email chưa từng đăng ký thì trả 404 đúng nguyên văn "User not found." và không Set-Cookie.',
+          'Kiểm tra POST /api/login bằng email chưa từng đăng ký thì trả 401 đúng nguyên văn "Invalid email or password." (giống hệt sai mật khẩu) và không Set-Cookie.',
         ),
       },
       async ({ authApi }) => {
@@ -698,9 +702,9 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
           login = await authApi.login<LoginFailure>({ email: user.email, password: user.password });
         });
 
-        await test.step('Assert: Trả 404 "User not found." nguyên văn và không Set-Cookie', async () => {
-          expect(login.status, 'Email chưa đăng ký phải trả HTTP 404').toBe(404);
-          expect(login.body, 'Body lỗi phải đúng nguyên văn').toEqual(USER_NOT_FOUND_BODY);
+        await test.step('Assert: Trả 401 "Invalid email or password." nguyên văn và không Set-Cookie', async () => {
+          expect(login.status, 'Email chưa đăng ký phải trả HTTP 401').toBe(401);
+          expect(login.body, 'Body lỗi phải đúng nguyên văn').toEqual(INVALID_CREDENTIALS_BODY);
           expect(login.setCookies, 'Không được mở phiên — không Set-Cookie').toEqual([]);
           expect(login).toMeetApiBaseline();
         });
@@ -715,7 +719,7 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
           'BK_AUTH_TC_074',
           'critical',
           'Đăng nhập',
-          'Kiểm tra POST /api/login bằng tài khoản userC do test tạo rồi tự xoá bằng token của chính nó thì trả 404 "User not found." và không Set-Cookie.',
+          'Kiểm tra POST /api/login bằng tài khoản userC do test tạo rồi tự xoá bằng token của chính nó thì trả 401 "Invalid email or password." và không Set-Cookie.',
         ),
       },
       async ({ authApi, userApi, accountCleanup }) => {
@@ -737,9 +741,9 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
           login = await authApi.login<LoginFailure>({ email: userC.email, password: userC.password });
         });
 
-        await test.step('Assert: Trả 404 "User not found." nguyên văn và không Set-Cookie', async () => {
-          expect(login.status, 'Tài khoản đã xoá phải trả HTTP 404').toBe(404);
-          expect(login.body, 'Body lỗi phải đúng nguyên văn').toEqual(USER_NOT_FOUND_BODY);
+        await test.step('Assert: Trả 401 "Invalid email or password." nguyên văn và không Set-Cookie', async () => {
+          expect(login.status, 'Tài khoản đã xoá phải trả HTTP 401').toBe(401);
+          expect(login.body, 'Body lỗi phải đúng nguyên văn').toEqual(INVALID_CREDENTIALS_BODY);
           expect(login.setCookies, 'Không được mở phiên — không Set-Cookie').toEqual([]);
           expect(login).toMeetApiBaseline();
         });
@@ -975,7 +979,7 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
             'critical',
             'Đăng nhập',
             `Kiểm tra POST /api/login bằng email của userA với password là ${variant.label} thì không được 200 / không có accessToken, `
-              + 'chỉ trả 400 "Invalid password." hoặc 422 "Invalid data.", tuyệt đối không 500.',
+              + 'chỉ trả 401 "Invalid email or password." hoặc 422 "Invalid data.", tuyệt đối không 500.',
           ),
         },
         async ({ authApi, userA }) => {
@@ -990,11 +994,11 @@ test.describe('Xác thực (API) — Đăng ký · Đăng nhập', () => {
             login = await authApi.login<LoginFailure>({ email: userA.email, password });
           });
 
-          await test.step('Assert: Bị từ chối bằng 400 hoặc 422, không cấp token, không lỗi máy chủ', async () => {
+          await test.step('Assert: Bị từ chối bằng 401 hoặc 422, không cấp token, không lỗi máy chủ', async () => {
             expect(login.status, 'Chuỗi tấn công không được đăng nhập thành công').not.toBe(200);
             expect(login.body.accessToken, 'Không được cấp accessToken').toBeUndefined();
-            expect([400, 422], 'Chỉ chấp nhận 400 hoặc 422 — tuyệt đối không 500').toContain(login.status);
-            const expectedMessage = login.status === 400 ? 'Invalid password.' : 'Invalid data.';
+            expect([401, 422], 'Chỉ chấp nhận 401 hoặc 422 — tuyệt đối không 500').toContain(login.status);
+            const expectedMessage = login.status === 401 ? INVALID_CREDENTIALS_MESSAGE : 'Invalid data.';
             expect(login.body.msg, `HTTP ${login.status} phải kèm thông báo "${expectedMessage}"`).toBe(expectedMessage);
             expect(login).toMeetApiBaseline();
           });

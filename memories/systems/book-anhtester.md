@@ -3,7 +3,7 @@ name: book-anhtester
 description: book.anhtester.com (Book Management — web + API + app) — câu trả lời "hỏi một lần" của user, prefix TC ID, quy tắc dữ liệu, bug đã biết
 type: project
 nguon: bộ nhớ project-book-anhtester-env (repo cha) · phiên 15-09, 29-09-2026
-cap-nhat: 03-10-2026
+cap-nhat: 22-11-2026
 ---
 
 # book.anhtester.com — hệ thống chính của framework
@@ -24,6 +24,9 @@ cap-nhat: 03-10-2026
 - Mọi response API qua `expect(result).toMeetApiBaseline()`: SLA < `API_SLA_MS` · body JSON · không lộ `password` · không stack trace.
 
 ## Bug / hành vi lạ đã biết
+- 🔄 **22-11-2026 — API đổi hợp đồng lỗi đăng nhập** (CI đỏ từ ~20-11): `POST /api/login` sai mật khẩu **và** email không tồn tại / đã xoá đều trả **`401`** `{msg:"Invalid email or password.", fields:{email:[…], password:[…]}}` (trước: `400 "Invalid password."` / `404 "User not found."`). UI toast cũng đổi thành `Invalid email or password.`. Test + `account-cleanup.ts` đã sửa theo (`NOT_OWNED_STATUSES` = 401, 422; xoá xong đăng nhập lại phải 401). Đã **không** còn phân biệt được "chưa tạo" với "sai mật khẩu" qua login.
+- ✅ Cùng đợt đó server đã sửa: F-19 (thiếu `email` giờ ra `422 "Invalid data."`), `/api/login` trả `application/json`. Test `@known-bug` F-19 (đăng ký + đăng nhập thiếu email) và tên 10.000 ký tự giờ PASS — chưa gỡ tag.
+- ⚠️ 22-11-2026: tài khoản demo trong `.env` (`TEST_EMAIL`/`TEST_PASSWORD`) đăng nhập ra 401 → `BOOK_AUTH_TC_005` đỏ. Cần user cấp lại thông tin, không tự đăng ký lại.
 Danh sách đầy đủ ở `README.md` mục 9 (9 điểm) — đọc ở đó. Tóm tắt nặng nhất:
 - ⚠️ `POST /api/login` thiếu `email` → `400 "Invalid password."`; `POST /api/register` thiếu `email` → `422 "Email already exists."` — server lấy giá trị default `user@example.com` (F-19). **Chỉ ghi "cần Dev xác minh"**, không thử khai thác thêm.
 - Token cũ vẫn dùng được sau logout · cookie `accessToken` thiếu `HttpOnly/Secure/SameSite` · `currentPrice` âm ở 228/753 sách · logout UI race (TC_019 `fixme`) · đã logout vẫn vào được `/book-management` · `/api/login` trả `Content-Type: text/plain`.
