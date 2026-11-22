@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+__pycache__/
 
 # Test output — gom hết trong reports/ (Allure results/report, HTML, log, screenshot, trace)
 reports/
@@ -19,8 +20,8 @@ playwright/.cache/
 
 # Công cụ debug / IDE / OS
 .playwright-mcp/
-# Permission Claude Code tích luỹ theo từng máy — chứa đường dẫn tuyệt đối, không dùng chung được
-.claude/settings.local.json
+# Bộ skills/commands/rules Claude Code — đồng bộ từ repo claude-testing-skills, không đưa lên git
+.claude/
 .vscode/
 .idea/
 .DS_Store
